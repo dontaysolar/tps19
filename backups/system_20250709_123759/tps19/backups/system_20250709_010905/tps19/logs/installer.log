@@ -1,0 +1,100 @@
+2025-07-04 18:09:39 - \033[0;34mℹ️ Starting TPS19 Complete Final Working Installation...\033[0m
+2025-07-04 18:09:39 - \033[0;32m✅ Comprehensive directory structure created\033[0m
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Hit:1 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky InRelease
+Get:2 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates InRelease [126 kB]
+Ign:3 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky InRelease
+Get:4 http://security.ubuntu.com/ubuntu plucky-security InRelease [126 kB]
+Get:5 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-backports InRelease [126 kB]
+Err:6 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release
+  404  Not Found [IP: 185.125.190.80 443]
+Get:7 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/main amd64 Packages [191 kB]
+Get:8 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/main Translation-en [55.1 kB]
+Get:9 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/main amd64 Components [30.5 kB]
+Get:10 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/universe amd64 Packages [151 kB]
+Get:11 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/universe Translation-en [45.5 kB]
+Get:12 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/universe amd64 Components [8792 B]
+Get:13 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/restricted amd64 Packages [71.0 kB]
+Get:14 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/restricted Translation-en [18.3 kB]
+Get:15 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/restricted amd64 Components [212 B]
+Get:16 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/multiverse amd64 Components [212 B]
+Get:17 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-backports/main amd64 Components [212 B]
+Get:18 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-backports/universe amd64 Components [216 B]
+Get:19 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-backports/restricted amd64 Components [216 B]
+Get:20 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-backports/multiverse amd64 Components [216 B]
+Get:21 http://security.ubuntu.com/ubuntu plucky-security/main amd64 Packages [114 kB]
+Get:22 http://security.ubuntu.com/ubuntu plucky-security/main Translation-en [35.5 kB]
+Get:23 http://security.ubuntu.com/ubuntu plucky-security/main amd64 Components [14.7 kB]
+Get:24 http://security.ubuntu.com/ubuntu plucky-security/universe amd64 Packages [85.2 kB]
+Get:25 http://security.ubuntu.com/ubuntu plucky-security/universe Translation-en [28.2 kB]
+Get:26 http://security.ubuntu.com/ubuntu plucky-security/universe amd64 Components [1352 B]
+Get:27 http://security.ubuntu.com/ubuntu plucky-security/restricted amd64 Packages [67.9 kB]
+Get:28 http://security.ubuntu.com/ubuntu plucky-security/restricted Translation-en [16.9 kB]
+Get:29 http://security.ubuntu.com/ubuntu plucky-security/restricted amd64 Components [212 B]
+Get:30 http://security.ubuntu.com/ubuntu plucky-security/multiverse amd64 Components [212 B]
+Reading package lists...
+Error: The repository 'https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release' does not have a Release file.
+2025-07-04 18:10:25 - \033[0;34mℹ️ Starting TPS19 Complete Final Working Installation...\033[0m
+2025-07-04 18:10:25 - \033[0;32m✅ Comprehensive directory structure created\033[0m
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Hit:1 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky InRelease
+Hit:2 http://security.ubuntu.com/ubuntu plucky-security InRelease
+Hit:3 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates InRelease
+Hit:4 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-backports InRelease
+Ign:5 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky InRelease
+Err:6 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release
+  404  Not Found [IP: 185.125.190.80 443]
+Reading package lists...
+Error: The repository 'https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release' does not have a Release file.
+2025-07-04 18:11:40 - \033[0;34mℹ️ Starting TPS19 Complete Final Working Installation...\033[0m
+2025-07-04 18:11:40 - \033[0;32m✅ Comprehensive directory structure created\033[0m
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Hit:1 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky InRelease
+Hit:2 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates InRelease
+Hit:3 http://security.ubuntu.com/ubuntu plucky-security InRelease
+Hit:4 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-backports InRelease
+Ign:5 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky InRelease
+Err:6 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release
+  404  Not Found [IP: 185.125.190.80 443]
+Reading package lists...
+Error: The repository 'https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release' does not have a Release file.
+2025-07-04 18:14:50 - \033[0;31m❌ ERROR: This installer must be run as root. Use: sudo bash ./TPS19_COMPLETE_FINAL_WORKING_INSTALLER.sh\033[0m
+2025-07-04 18:16:44 - \033[0;34mℹ️ Starting TPS19 Complete Final Working Installation...\033[0m
+2025-07-04 18:16:44 - \033[0;32m✅ Comprehensive directory structure created\033[0m
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Hit:1 http://security.ubuntu.com/ubuntu plucky-security InRelease
+Hit:2 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky InRelease
+Hit:3 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates InRelease
+Hit:4 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-backports InRelease
+Ign:5 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky InRelease
+Err:6 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release
+  404  Not Found [IP: 185.125.190.80 443]
+Reading package lists...
+Error: The repository 'https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release' does not have a Release file.
+2025-07-04 18:35:48 - \033[0;34mℹ️ Starting TPS19 Complete Final Working Installation...\033[0m
+2025-07-04 18:35:48 - \033[0;32m✅ Comprehensive directory structure created\033[0m
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Hit:1 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky InRelease
+Hit:2 http://security.ubuntu.com/ubuntu plucky-security InRelease
+Get:3 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates InRelease [126 kB]
+Hit:4 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-backports InRelease
+Ign:5 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky InRelease
+Get:6 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/main amd64 Packages [191 kB]
+Err:7 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release
+  404  Not Found [IP: 185.125.190.80 443]
+Get:8 http://europe-north1.gce.archive.ubuntu.com/ubuntu plucky-updates/universe amd64 Packages [151 kB]
+Reading package lists...
+Error: The repository 'https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu plucky Release' does not have a Release file.
+2025-07-04 18:47:19 - \033[0;32m🚀 Starting TPS19 Fixed Installation...\033[0m
+2025-07-04 18:47:19 - \033[0;36m📁 Creating directory structure...\033[0m
+2025-07-04 18:47:19 - \033[0;36m📦 Installing system dependencies...\033[0m

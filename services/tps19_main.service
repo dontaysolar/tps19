@@ -1,0 +1,14 @@
+[Unit]
+Description=TPS19 Main Trading System
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/tps19
+ExecStart=/usr/bin/python3 /opt/tps19/modules/trading_engine.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
