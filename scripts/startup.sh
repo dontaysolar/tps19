@@ -1,14 +1,23 @@
 #!/bin/bash
-# TPS19 System Startup Script
+set -euo pipefail
+# TPS System Startup Script
 
-echo "🚀 Starting TPS19 System..."
+echo "🚀 Starting TPS System..."
 
-# Check Python modules
-python3 -c "import sys; sys.path.append('/opt/tps19/modules'); import trading_engine, simulation_engine, market_data, risk_management, ai_council; print('✅ All modules imported successfully')"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export TPS_HOME="${TPS_HOME:-$SCRIPT_DIR/..}"
 
-# Initialize databases
-python3 /opt/tps19/modules/trading_engine.py &
-python3 /opt/tps19/modules/simulation_engine.py &
-python3 /opt/tps19/modules/market_data.py &
+# Check Python modules via dynamic path
+python3 - <<'PY'
+from modules.common.config import add_modules_to_sys_path
+add_modules_to_sys_path()
+import modules.trading_engine, modules.simulation_engine, modules.market_data, modules.risk_management, modules.ai_council
+print('✅ All modules imported successfully')
+PY
 
-echo "✅ TPS19 System started successfully"
+# Start core services (non-blocking)
+python3 "$TPS_HOME/modules/trading_engine.py" &
+python3 "$TPS_HOME/modules/simulation_engine.py" &
+python3 "$TPS_HOME/modules/market_data.py" &
+
+echo "✅ TPS System started successfully"

@@ -6,10 +6,13 @@ import requests
 import sqlite3
 import time
 from datetime import datetime
+from modules.common.config import get_db_path
+from modules.common.logging import get_logger
 
 class MarketData:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/databases/market_data.db"
+        self.db_path = get_db_path('market_data.db')
+        self.logger = get_logger('market.data')
         self.init_database()
         
     def init_database(self):
@@ -64,7 +67,7 @@ class MarketData:
             return price
             
         except Exception as e:
-            # Return mock price if API fails
+            self.logger.warning(f"Price fetch failed, using mock: {e}")
             return 50000.0 + (time.time() % 1000)
             
     def get_market_stats(self, symbol="bitcoin"):
@@ -84,7 +87,7 @@ class MarketData:
             return stats
             
         except Exception as e:
-            # Return mock data if API fails
+            self.logger.warning(f"Stats fetch failed, returning mock: {e}")
             return {
                 "price": 50000.0,
                 "high_24h": 52000.0,

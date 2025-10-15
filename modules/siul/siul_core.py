@@ -4,17 +4,20 @@
 import os, json, sqlite3, threading, time, hashlib
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
+from modules.common.config import get_db_path
+from modules.common.logging import get_logger
 
 class SIULCore:
     """Smart Intelligent Unified Logic - Central Intelligence System"""
     
-    def __init__(self, db_path='/opt/tps19/data/siul_core.db'):
-        self.db_path = db_path
+    def __init__(self, db_path: str | None = None):
+        self.db_path = db_path or get_db_path('siul_core.db')
         self.exchange = 'crypto.com'
         self.intelligence_modules = {}
         self.unified_state = {}
         self.logic_chains = []
         self.lock = threading.Lock()
+        self.logger = get_logger('siul')
         
         self._init_database()
         self._init_intelligence_modules()
@@ -61,10 +64,10 @@ class SIULCore:
                 
             conn.commit()
             conn.close()
-            print("✅ SIUL database initialized")
+            self.logger.info("SIUL database initialized")
             
         except Exception as e:
-            print(f"❌ SIUL database failed: {e}")
+            self.logger.error(f"SIUL database failed: {e}")
             
     def _init_intelligence_modules(self):
         """Initialize intelligence modules"""
@@ -109,7 +112,7 @@ class SIULCore:
             }
             
         except Exception as e:
-            print(f"❌ SIUL processing error: {e}")
+            self.logger.error(f"SIUL processing error: {e}")
             return {}
             
     def _apply_unified_logic(self, intelligence_results: Dict[str, Any], input_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -162,7 +165,7 @@ class SIULCore:
             }
             
         except Exception as e:
-            print(f"❌ Unified logic error: {e}")
+            self.logger.error(f"Unified logic error: {e}")
             return {}
             
     def _generate_final_decision(self, unified_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -179,7 +182,7 @@ class SIULCore:
             }
             
         except Exception as e:
-            print(f"❌ Final decision error: {e}")
+            self.logger.error(f"Final decision error: {e}")
             return {}
             
     def _store_logic_chain(self, chain_id: str, input_data: Dict[str, Any], 
@@ -200,7 +203,7 @@ class SIULCore:
             conn.close()
             
         except Exception as e:
-            print(f"❌ Logic chain storage error: {e}")
+            self.logger.error(f"Logic chain storage error: {e}")
             
     def get_siul_stats(self) -> Dict[str, Any]:
         """Get SIUL system statistics"""
@@ -234,7 +237,7 @@ class SIULCore:
             }
             
         except Exception as e:
-            print(f"❌ SIUL stats error: {e}")
+            self.logger.error(f"SIUL stats error: {e}")
             return {}
             
     def test_functionality(self) -> bool:
@@ -257,7 +260,7 @@ class SIULCore:
                 return False
                 
         except Exception as e:
-            print(f"❌ SIUL test error: {e}")
+            self.logger.error(f"SIUL test error: {e}")
             return False
 
 class MarketIntelligenceModule:
