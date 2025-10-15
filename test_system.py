@@ -3,42 +3,46 @@
 
 import sys
 import os
-sys.path.append('/opt/tps19/modules')
+try:
+    from modules.common.config import add_modules_to_sys_path
+    add_modules_to_sys_path()
+except Exception:
+    sys.path.append('/opt/tps19/modules')
 
 def test_modules():
     """Test all TPS19 modules"""
     results = {}
     
     try:
-        from trading_engine import TradingEngine
+        from modules.trading_engine import TradingEngine
         engine = TradingEngine()
         results['trading_engine'] = "✅ PASS"
     except Exception as e:
         results['trading_engine'] = f"❌ FAIL: {e}"
         
     try:
-        from simulation_engine import SimulationEngine
+        from modules.simulation_engine import SimulationEngine
         sim = SimulationEngine()
         results['simulation_engine'] = "✅ PASS"
     except Exception as e:
         results['simulation_engine'] = f"❌ FAIL: {e}"
         
     try:
-        from market_data import MarketData
+        from modules.market_data import MarketData
         market = MarketData()
         results['market_data'] = "✅ PASS"
     except Exception as e:
         results['market_data'] = f"❌ FAIL: {e}"
         
     try:
-        from risk_management import RiskManager
+        from modules.risk_management import RiskManager
         risk = RiskManager()
         results['risk_management'] = "✅ PASS"
     except Exception as e:
         results['risk_management'] = f"❌ FAIL: {e}"
         
     try:
-        from ai_council import AICouncil
+        from modules.ai_council import AICouncil
         ai = AICouncil()
         results['ai_council'] = "✅ PASS"
     except Exception as e:

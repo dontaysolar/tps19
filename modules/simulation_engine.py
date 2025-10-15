@@ -6,10 +6,11 @@ import sqlite3
 import time
 from datetime import datetime
 import random
+from modules.common.config import get_db_path
 
 class SimulationEngine:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/databases/simulation.db"
+        self.db_path = get_db_path('simulation.db')
         self.balance = 10000.0  # Starting balance
         self.positions = {}
         self.init_database()

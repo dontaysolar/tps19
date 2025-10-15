@@ -3,11 +3,17 @@
 
 import sys, os, time, json
 from datetime import datetime
-sys.path.insert(0, '/opt/tps19/modules')
+try:
+    # Prefer dynamic modules path
+    from modules.common.config import add_modules_to_sys_path, PATHS
+    add_modules_to_sys_path()
+except Exception:
+    # Fallback for legacy environments
+    sys.path.insert(0, '/opt/tps19/modules')
 
 try:
-    from brain.ai_memory import ai_memory
-    from market.market_feed import market_feed
+    from modules.brain.ai_memory import ai_memory
+    from modules.market.market_feed import market_feed
 except ImportError as e:
     print(f"❌ Module import failed: {e}")
     sys.exit(1)
@@ -78,16 +84,17 @@ class TPS19TestSuite:
         """Test database connectivity"""
         try:
             import sqlite3
+            from modules.common.config import get_db_path
             
             # Test AI Memory database
-            conn = sqlite3.connect('/opt/tps19/data/ai_memory.db')
+            conn = sqlite3.connect(get_db_path('ai_memory.db'))
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM ai_decisions")
             ai_count = cursor.fetchone()[0]
             conn.close()
             
             # Test Market Feed database
-            conn = sqlite3.connect('/opt/tps19/data/market_data.db')
+            conn = sqlite3.connect(get_db_path('market_feed.db'))
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM market_data")
             market_count = cursor.fetchone()[0]
@@ -194,8 +201,9 @@ class TPS19TestSuite:
         }
         
         # Save report
-        os.makedirs('/opt/tps19/reports', exist_ok=True)
-        report_file = f"/opt/tps19/reports/test_report_{int(time.time())}.json"
+        from modules.common.config import PATHS
+        os.makedirs(PATHS['reports'], exist_ok=True)
+        report_file = os.path.join(PATHS['reports'], f"test_report_{int(time.time())}.json")
         
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)

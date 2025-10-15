@@ -5,10 +5,11 @@ import json
 import sqlite3
 import random
 from datetime import datetime
+from modules.common.config import get_db_path
 
 class AICouncil:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/databases/ai_decisions.db"
+        self.db_path = get_db_path('ai_decisions.db')
         self.init_database()
         
     def init_database(self):

@@ -4,13 +4,16 @@
 import json
 import sqlite3
 from datetime import datetime
+from modules.common.config import get_db_path
+from modules.common.logging import get_logger
 
 class RiskManager:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/databases/risk.db"
+        self.db_path = get_db_path('risk.db')
         self.max_position_size = 0.1  # 10% max position size
         self.max_daily_loss = 0.05    # 5% max daily loss
         self.init_database()
+        self.logger = get_logger('risk')
         
     def init_database(self):
         """Initialize risk management database"""

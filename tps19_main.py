@@ -3,13 +3,17 @@
 
 import sys, os, time, threading, signal
 from datetime import datetime
-sys.path.insert(0, '/opt/tps19/modules')
+try:
+    from modules.common.config import add_modules_to_sys_path
+    add_modules_to_sys_path()
+except Exception:
+    sys.path.insert(0, '/opt/tps19/modules')
 
 # Import all modules
 try:
-    from siul.siul_core import siul_core
-    from patching.patch_manager import patch_manager
-    from n8n.n8n_integration import n8n_integration
+    from modules.siul.siul_core import siul_core
+    from modules.patching.patch_manager import patch_manager
+    from modules.n8n.n8n_integration import n8n_integration
     print("✅ All unified modules imported successfully")
 except ImportError as e:
     print(f"❌ Module import failed: {e}")

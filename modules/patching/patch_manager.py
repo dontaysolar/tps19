@@ -4,16 +4,19 @@
 import os, json, sqlite3, shutil, hashlib, time, subprocess
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+from modules.common.config import PATHS, get_db_path
+from modules.common.logging import get_logger
 
 class TPS19PatchManager:
     """Complete Patching and Rollback System"""
     
-    def __init__(self, db_path='/opt/tps19/data/patch_manager.db'):
-        self.db_path = db_path
-        self.patches_dir = '/opt/tps19/patches'
-        self.backups_dir = '/opt/tps19/backups'
-        self.system_dir = '/opt/tps19'
+    def __init__(self, db_path: str | None = None):
+        self.db_path = db_path or get_db_path('patch_manager.db')
+        self.patches_dir = PATHS['patches']
+        self.backups_dir = PATHS['backups']
+        self.system_dir = PATHS['home']
         self.exchange = 'crypto.com'
+        self.logger = get_logger('patch.manager')
         
         self._init_database()
         self._ensure_directories()
@@ -62,10 +65,10 @@ class TPS19PatchManager:
                 
             conn.commit()
             conn.close()
-            print("✅ Patch Manager database initialized")
+            self.logger.info("Patch Manager database initialized")
             
         except Exception as e:
-            print(f"❌ Patch Manager database failed: {e}")
+            self.logger.error(f"Patch Manager database failed: {e}")
             
     def _ensure_directories(self):
         """Ensure required directories exist"""
@@ -107,11 +110,11 @@ class TPS19PatchManager:
             # Store system version
             self._store_system_version(version_id, "1.0", system_state, backup_path)
             
-            print(f"✅ System backup created: {version_id}")
+            self.logger.info(f"System backup created: {version_id}")
             return version_id
             
         except Exception as e:
-            print(f"❌ Backup creation failed: {e}")
+            self.logger.error(f"Backup creation failed: {e}")
             return ""
             
     def apply_patch(self, patch_data: Dict[str, Any]) -> bool:
@@ -176,11 +179,11 @@ class TPS19PatchManager:
             # Store patch information
             self._store_patch(patch_id, patch_data, rollback_data, 'applied')
             
-            print(f"✅ Patch {patch_id} applied successfully")
+            self.logger.info(f"Patch {patch_id} applied successfully")
             return True
             
         except Exception as e:
-            print(f"❌ Patch application failed: {e}")
+            self.logger.error(f"Patch application failed: {e}")
             # Attempt automatic rollback
             if 'backup_id' in locals():
                 self.rollback_to_backup(backup_id)
@@ -199,7 +202,7 @@ class TPS19PatchManager:
             conn.close()
             
             if not result:
-                print(f"❌ Patch {patch_id} not found")
+                self.logger.error(f"Patch {patch_id} not found")
                 return False
                 
             rollback_data = json.loads(result[0])
@@ -231,11 +234,11 @@ class TPS19PatchManager:
             # Store rollback history
             self._store_rollback(rollback_id, patch_id, "Manual rollback", True, rollback_data)
             
-            print(f"✅ Patch {patch_id} rolled back successfully")
+            self.logger.info(f"Patch {patch_id} rolled back successfully")
             return True
             
         except Exception as e:
-            print(f"❌ Rollback failed: {e}")
+            self.logger.error(f"Rollback failed: {e}")
             return False
             
     def rollback_to_backup(self, backup_id: str) -> bool:
@@ -244,7 +247,7 @@ class TPS19PatchManager:
             backup_path = os.path.join(self.backups_dir, backup_id)
             
             if not os.path.exists(backup_path):
-                print(f"❌ Backup {backup_id} not found")
+                self.logger.error(f"Backup {backup_id} not found")
                 return False
                 
             # Create current state backup before rollback
@@ -274,11 +277,11 @@ class TPS19PatchManager:
             rollback_id = f"system_rollback_{int(time.time())}"
             self._store_rollback(rollback_id, backup_id, f"System rollback to {backup_id}", True, {})
             
-            print(f"✅ System rolled back to {backup_id}")
+            self.logger.info(f"System rolled back to {backup_id}")
             return True
             
         except Exception as e:
-            print(f"❌ System rollback failed: {e}")
+            self.logger.error(f"System rollback failed: {e}")
             return False
             
     def _calculate_directory_hash(self, directory_path: str) -> str:
@@ -318,7 +321,7 @@ class TPS19PatchManager:
             conn.close()
             
         except Exception as e:
-            print(f"❌ Patch storage failed: {e}")
+            self.logger.error(f"Patch storage failed: {e}")
             
     def _store_rollback(self, rollback_id: str, patch_id: str, reason: str, success: bool, rollback_data: Any):
         """Store rollback information"""
@@ -335,7 +338,7 @@ class TPS19PatchManager:
             conn.close()
             
         except Exception as e:
-            print(f"❌ Rollback storage failed: {e}")
+            self.logger.error(f"Rollback storage failed: {e}")
             
     def _store_system_version(self, version_id: str, version_number: str, system_state: Dict[str, Any], backup_path: str):
         """Store system version information"""
@@ -356,7 +359,7 @@ class TPS19PatchManager:
             conn.close()
             
         except Exception as e:
-            print(f"❌ Version storage failed: {e}")
+            self.logger.error(f"Version storage failed: {e}")
             
     def get_patch_status(self) -> Dict[str, Any]:
         """Get patch system status"""
@@ -392,27 +395,27 @@ class TPS19PatchManager:
             }
             
         except Exception as e:
-            print(f"❌ Patch status error: {e}")
+            self.logger.error(f"Patch status error: {e}")
             return {}
             
     def test_patch_rollback_system(self) -> bool:
         """Test the complete patch and rollback system"""
         try:
-            print("🧪 Testing Patch + Rollback System...")
+            self.logger.info("Testing Patch + Rollback System...")
             
             # Step 1: Create initial backup
-            print("1️⃣ Creating initial backup...")
+            self.logger.info("Creating initial backup...")
             backup_id = self.create_system_backup("test_initial")
             if not backup_id:
                 return False
                 
             # Step 2: Create test file
-            test_file = '/opt/tps19/test_patch_file.txt'
+            test_file = os.path.join(self.system_dir, 'test_patch_file.txt')
             with open(test_file, 'w') as f:
                 f.write("Original content")
                 
             # Step 3: Apply test patch
-            print("2️⃣ Applying test patch...")
+            self.logger.info("Applying test patch...")
             test_patch = {
                 'patch_id': 'test_patch_001',
                 'version': '1.1',
@@ -435,31 +438,31 @@ class TPS19PatchManager:
                 content = f.read()
                 
             if 'Patched content' not in content:
-                print("❌ Patch was not applied correctly")
+                self.logger.error("Patch was not applied correctly")
                 return False
                 
             # Step 5: Test rollback
-            print("4️⃣ Testing rollback...")
+            self.logger.info("Testing rollback...")
             if not self.rollback_patch('test_patch_001'):
                 return False
                 
             # Step 6: Verify rollback worked
-            print("5️⃣ Verifying rollback...")
+            self.logger.info("Verifying rollback...")
             with open(test_file, 'r') as f:
                 content = f.read()
                 
             if content != "Original content":
-                print("❌ Rollback failed - content not restored")
+                self.logger.error("Rollback failed - content not restored")
                 return False
                 
             # Step 7: Clean up
             os.remove(test_file)
             
-            print("✅ Patch + Rollback system test PASSED")
+            self.logger.info("Patch + Rollback system test PASSED")
             return True
             
         except Exception as e:
-            print(f"❌ Patch + Rollback test failed: {e}")
+            self.logger.error(f"Patch + Rollback test failed: {e}")
             return False
 
 # Global patch manager instance

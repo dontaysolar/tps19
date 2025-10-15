@@ -11,15 +11,17 @@ import threading
 import time
 import os
 from datetime import datetime
-import logging
+from modules.common.logging import get_logger
+from modules.common.config import get_db_path
 
 class RealtimeDataFeed:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/market_data.db"
+        self.db_path = get_db_path('market_data.db')
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.init_database()
         self.active = False
         self.data_thread = None
+        self.logger = get_logger('realtime.data')
         
     def init_database(self):
         try:
@@ -39,9 +41,9 @@ class RealtimeDataFeed:
             """)
             conn.commit()
             conn.close()
-            print("✅ Market data database initialized")
+            self.logger.info("Market data database initialized")
         except Exception as e:
-            print(f"❌ Market data database error: {e}")
+            self.logger.error(f"Market data database error: {e}")
         
     def start_feed(self):
         """Start real-time data feed"""
@@ -52,14 +54,14 @@ class RealtimeDataFeed:
         self.data_thread = threading.Thread(target=self._data_loop)
         self.data_thread.daemon = True
         self.data_thread.start()
-        print("✅ Real-time data feed started")
+        self.logger.info("Real-time data feed started")
         
     def stop_feed(self):
         """Stop real-time data feed"""
         self.active = False
         if self.data_thread:
             self.data_thread.join()
-        print("✅ Real-time data feed stopped")
+        self.logger.info("Real-time data feed stopped")
             
     def _data_loop(self):
         """Main data collection loop"""
@@ -76,7 +78,7 @@ class RealtimeDataFeed:
                 time.sleep(60)  # Update every minute (API rate limit friendly)
                 
             except Exception as e:
-                print(f"❌ Data feed error: {e}")
+                self.logger.error(f"Data feed error: {e}")
                 time.sleep(120)  # Wait longer on error
                 
     def fetch_price_data(self, symbol):
@@ -106,7 +108,7 @@ class RealtimeDataFeed:
                 }
                 
         except Exception as e:
-            print(f"❌ API fetch error for {symbol}: {e}")
+            self.logger.warning(f"API fetch error for {symbol}: {e}")
             
         return None
         
@@ -123,7 +125,7 @@ class RealtimeDataFeed:
             conn.commit()
             conn.close()
         except Exception as e:
-            print(f"❌ Data storage error: {e}")
+            self.logger.error(f"Data storage error: {e}")
             
     def get_latest_price(self, symbol):
         """Get latest price for symbol"""
@@ -148,7 +150,7 @@ class RealtimeDataFeed:
                 }
                 
         except Exception as e:
-            print(f"❌ Price fetch error: {e}")
+            self.logger.error(f"Price fetch error: {e}")
             
         return None
         
@@ -181,7 +183,7 @@ class RealtimeDataFeed:
                 for row in results
             ]
         except Exception as e:
-            print(f"❌ Market summary error: {e}")
+            self.logger.error(f"Market summary error: {e}")
             return []
 
 if __name__ == "__main__":

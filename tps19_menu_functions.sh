@@ -27,17 +27,17 @@ view_system_status() {
 start_tps19_system() {
     echo "🚀 Starting TPS19 System"
     echo "========================"
-    cd /opt/tps19
+cd "${TPS_HOME:-/opt/tps19}"
     
     # Start system components
     echo "Starting trading engine..."
-    python3 modules/trading_engine.py &
+python3 modules/trading_engine.py &
     
     echo "Starting simulation engine..."
-    python3 modules/simulation_engine.py &
+python3 modules/simulation_engine.py &
     
     echo "Starting market data..."
-    python3 modules/market_data.py &
+python3 modules/market_data.py &
     
     echo "✅ TPS19 System started"
     read -p "Press Enter to continue..."

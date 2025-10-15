@@ -4,16 +4,19 @@
 import os, json, requests, time, threading
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+from modules.common.config import PATHS
+from modules.common.logging import get_logger
 
 class TPS19N8NIntegration:
     """Complete N8N Integration for TPS19"""
     
-    def __init__(self, config_path='/opt/tps19/config/n8n_config.json'):
-        self.config_path = config_path
+    def __init__(self, config_path: str | None = None):
+        self.config_path = config_path or os.path.join(PATHS['config'], 'n8n_config.json')
         self.n8n_url = 'http://localhost:5678'
         self.webhook_endpoints = {}
         self.active_workflows = {}
         self.exchange = 'crypto.com'
+        self.logger = get_logger('n8n')
         
         self._load_config()
         self._init_webhooks()
@@ -30,7 +33,7 @@ class TPS19N8NIntegration:
                 self._create_default_config()
                 
         except Exception as e:
-            print(f"❌ N8N config load failed: {e}")
+            self.logger.error(f"N8N config load failed: {e}")
             
     def _create_default_config(self):
         """Create default N8N configuration"""
@@ -58,7 +61,7 @@ class TPS19N8NIntegration:
                 json.dump(default_config, f, indent=2)
                 
         except Exception as e:
-            print(f"❌ N8N config creation failed: {e}")
+            self.logger.error(f"N8N config creation failed: {e}")
             
     def _init_webhooks(self):
         """Initialize webhook endpoints"""
@@ -90,14 +93,14 @@ class TPS19N8NIntegration:
             response = requests.post(webhook_url, json=payload, timeout=10)
             
             if response.status_code == 200:
-                print(f"✅ Trade signal sent to N8N: {signal_data.get('action')} {signal_data.get('symbol')}")
+                self.logger.info(f"Trade signal sent: {signal_data.get('action')} {signal_data.get('symbol')}")
                 return True
             else:
-                print(f"❌ N8N trade signal failed: {response.status_code}")
+                self.logger.warning(f"Trade signal failed: {response.status_code}")
                 return False
                 
         except Exception as e:
-            print(f"❌ N8N trade signal error: {e}")
+            self.logger.error(f"N8N trade signal error: {e}")
             return False
             
     def send_arbitrage_opportunity(self, arbitrage_data: Dict[str, Any]) -> bool:
@@ -118,14 +121,14 @@ class TPS19N8NIntegration:
             response = requests.post(webhook_url, json=payload, timeout=10)
             
             if response.status_code == 200:
-                print(f"✅ Arbitrage opportunity sent to N8N: {arbitrage_data.get('profit_potential', 0):.2%} profit")
+                self.logger.info(f"Arbitrage sent: {arbitrage_data.get('profit_potential', 0):.2%} profit")
                 return True
             else:
-                print(f"❌ N8N arbitrage signal failed: {response.status_code}")
+                self.logger.warning(f"Arbitrage failed: {response.status_code}")
                 return False
                 
         except Exception as e:
-            print(f"❌ N8N arbitrage error: {e}")
+            self.logger.error(f"N8N arbitrage error: {e}")
             return False
             
     def send_system_status(self, status_data: Dict[str, Any]) -> bool:
@@ -146,14 +149,14 @@ class TPS19N8NIntegration:
             response = requests.post(webhook_url, json=payload, timeout=10)
             
             if response.status_code == 200:
-                print("✅ System status sent to N8N")
+                self.logger.info("System status sent")
                 return True
             else:
-                print(f"❌ N8N status update failed: {response.status_code}")
+                self.logger.warning(f"Status update failed: {response.status_code}")
                 return False
                 
         except Exception as e:
-            print(f"❌ N8N status error: {e}")
+            self.logger.error(f"N8N status error: {e}")
             return False
             
     def trigger_profit_optimization(self, optimization_data: Dict[str, Any]) -> bool:
@@ -173,14 +176,14 @@ class TPS19N8NIntegration:
             response = requests.post(webhook_url, json=payload, timeout=10)
             
             if response.status_code == 200:
-                print("✅ Profit optimization triggered in N8N")
+                self.logger.info("Profit optimization triggered")
                 return True
             else:
-                print(f"❌ N8N profit optimization failed: {response.status_code}")
+                self.logger.warning(f"Profit optimization failed: {response.status_code}")
                 return False
                 
         except Exception as e:
-            print(f"❌ N8N profit optimization error: {e}")
+            self.logger.error(f"N8N profit optimization error: {e}")
             return False
             
     def detect_triangular_arbitrage(self, market_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -216,14 +219,16 @@ class TPS19N8NIntegration:
             try:
                 response = requests.get(f"{self.n8n_url}/healthz", timeout=5)
                 if response.status_code == 200:
-                    print("✅ N8N is already running")
+                    self.logger.info("N8N is already running")
                     return True
             except:
                 pass
                 
             # Start N8N service
-            print("🚀 Starting N8N service...")
-            os.system("nohup n8n start > /opt/tps19/logs/n8n.log 2>&1 &")
+            self.logger.info("Starting N8N service...")
+            log_dir = PATHS.get('logs')
+            os.makedirs(log_dir, exist_ok=True)
+            os.system(f"nohup n8n start > {os.path.join(log_dir, 'n8n.log')} 2>&1 &")
             
             # Wait for startup
             time.sleep(10)
@@ -232,23 +237,23 @@ class TPS19N8NIntegration:
             try:
                 response = requests.get(f"{self.n8n_url}/healthz", timeout=5)
                 if response.status_code == 200:
-                    print("✅ N8N service started successfully")
+                    self.logger.info("N8N service started successfully")
                     return True
                 else:
-                    print("❌ N8N service failed to start")
+                    self.logger.error("N8N service failed to start")
                     return False
             except:
-                print("❌ N8N service not responding")
+                self.logger.error("N8N service not responding")
                 return False
                 
         except Exception as e:
-            print(f"❌ N8N startup error: {e}")
+            self.logger.error(f"N8N startup error: {e}")
             return False
             
     def test_n8n_integration(self) -> bool:
         """Test N8N integration"""
         try:
-            print("🧪 Testing N8N integration...")
+            self.logger.info("Testing N8N integration...")
             
             # Test trade signal
             test_signal = {
@@ -261,11 +266,11 @@ class TPS19N8NIntegration:
             # Note: This will fail if N8N is not running, but that's expected in testing
             result = self.send_trade_signal(test_signal)
             
-            print("✅ N8N integration test completed (may show connection errors if N8N not running)")
+            self.logger.info("N8N integration test completed (may show connection errors if N8N not running)")
             return True
             
         except Exception as e:
-            print(f"❌ N8N integration test error: {e}")
+            self.logger.error(f"N8N integration test error: {e}")
             return False
 
 # Global N8N integration instance
