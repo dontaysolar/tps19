@@ -8,7 +8,7 @@ from datetime import datetime
 
 class AICouncil:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/databases/ai_decisions.db"
+        self.db_path = "/workspace/data/databases/ai_decisions.db"
         self.init_database()
         
     def init_database(self):

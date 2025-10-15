@@ -1,0 +1,52 @@
+# TPS19 Crypto Trading System Dependencies
+# Core Python packages for crypto trading system
+
+# Database
+sqlite3  # Built-in with Python
+
+# HTTP Requests & API Integration
+requests>=2.31.0
+urllib3>=2.0.0
+
+# Data Processing & Analysis
+numpy>=1.24.0
+pandas>=2.0.0
+
+# JSON & Configuration
+json5>=0.9.0
+
+# Date/Time Handling
+python-dateutil>=2.8.0
+
+# Logging & Monitoring
+loguru>=0.7.0
+
+# Async Support (for future enhancements)
+aiohttp>=3.8.0
+asyncio  # Built-in with Python
+
+# Cryptographic Functions
+cryptography>=41.0.0
+hashlib  # Built-in with Python
+
+# Threading & Concurrency
+threading  # Built-in with Python
+concurrent.futures  # Built-in with Python
+
+# File System Operations
+os  # Built-in with Python
+shutil  # Built-in with Python
+
+# Optional: Enhanced Features
+# telegram-bot-api>=7.0.0  # Uncomment for Telegram integration
+# ccxt>=4.0.0              # Uncomment for exchange integration
+# ta-lib>=0.4.0            # Uncomment for technical analysis
+# websockets>=11.0.0       # Uncomment for real-time data feeds
+
+# Development & Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Code Quality
+flake8>=6.0.0
+black>=23.0.0

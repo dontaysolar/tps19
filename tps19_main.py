@@ -3,7 +3,7 @@
 
 import sys, os, time, threading, signal
 from datetime import datetime
-sys.path.insert(0, '/opt/tps19/modules')
+sys.path.insert(0, '/workspace/modules')
 
 # Import all modules
 try:

@@ -9,7 +9,7 @@ from datetime import datetime
 
 class MarketData:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/databases/market_data.db"
+        self.db_path = "/workspace/data/databases/market_data.db"
         self.init_database()
         
     def init_database(self):
