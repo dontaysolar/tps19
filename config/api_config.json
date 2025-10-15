@@ -1,0 +1,28 @@
+{
+  "crypto_com": {
+    "api_url": "https://api.crypto.com/v2",
+    "websocket_url": "wss://stream.crypto.com/v2/market",
+    "rate_limit": 100,
+    "timeout": 30
+  },
+  "alpha_vantage": {
+    "api_url": "https://www.alphavantage.co/query",
+    "rate_limit": 5,
+    "timeout": 30,
+    "functions": {
+      "crypto_daily": "DIGITAL_CURRENCY_DAILY",
+      "crypto_intraday": "CRYPTO_INTRADAY",
+      "forex": "FX_DAILY"
+    }
+  },
+  "telegram": {
+    "api_url": "https://api.telegram.org/bot",
+    "timeout": 30
+  },
+  "google_sheets": {
+    "scope": [
+      "https://spreadsheets.google.com/feeds",
+      "https://www.googleapis.com/auth/drive"
+    ]
+  }
+}

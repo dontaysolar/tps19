@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
-"""TPS19 Market Data - Real-time market data functionality"""
+"""TPS19 Market Data - Real-time market data functionality with crypto.com and Alpha Vantage"""
 
 import json
 import requests
 import sqlite3
 import time
+import os
 from datetime import datetime
+from typing import Dict, List, Optional
 
 class MarketData:
     def __init__(self):
         self.db_path = "/opt/tps19/data/databases/market_data.db"
+        self.config_path = "/workspace/config/api_config.json"
+        self.load_config()
         self.init_database()
         
     def init_database(self):
@@ -41,56 +45,101 @@ class MarketData:
         conn.commit()
         conn.close()
         
-    def get_price(self, symbol="bitcoin"):
-        """Get current price for a symbol"""
+    def load_config(self):
+        """Load API configuration"""
         try:
-            # Use CoinGecko free API
-            url = f"https://api.coingecko.com/api/v3/simple/price?ids={symbol}&vs_currencies=usd"
-            response = requests.get(url, timeout=10)
+            with open(self.config_path, 'r') as f:
+                self.config = json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load config: {e}")
+            self.config = {
+                "crypto_com": {"api_url": "https://api.crypto.com/v2"},
+                "alpha_vantage": {"api_url": "https://www.alphavantage.co/query"}
+            }
+        
+    def get_price(self, symbol="BTC_USDT"):
+        """Get current price for a symbol from crypto.com"""
+        try:
+            # Use crypto.com API
+            url = f"{self.config['crypto_com']['api_url']}/public/get-ticker"
+            params = {"instrument_name": symbol}
+            response = requests.get(url, params=params, timeout=10)
             data = response.json()
             
-            price = data[symbol]['usd']
-            
-            # Store in database
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute('''
-                INSERT INTO price_data (symbol, price)
-                VALUES (?, ?)
-            ''', (symbol, price))
-            conn.commit()
-            conn.close()
-            
-            return price
+            if data.get('code') == 0 and data.get('result'):
+                price = float(data['result']['data'][0]['a'])  # Ask price
+                
+                # Store in database
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO price_data (symbol, price)
+                    VALUES (?, ?)
+                ''', (symbol, price))
+                conn.commit()
+                conn.close()
+                
+                return price
+            else:
+                # Fallback to Alpha Vantage for major pairs
+                return self.get_price_alpha_vantage(symbol)
             
         except Exception as e:
+            print(f"Error fetching price from crypto.com: {e}")
             # Return mock price if API fails
             return 50000.0 + (time.time() % 1000)
             
-    def get_market_stats(self, symbol="bitcoin"):
-        """Get market statistics"""
+    def get_price_alpha_vantage(self, symbol="BTC"):
+        """Get price from Alpha Vantage as fallback"""
         try:
-            url = f"https://api.coingecko.com/api/v3/coins/{symbol}"
-            response = requests.get(url, timeout=10)
+            api_key = os.getenv('ALPHA_VANTAGE_API_KEY', 'demo')
+            url = self.config['alpha_vantage']['api_url']
+            params = {
+                'function': 'CURRENCY_EXCHANGE_RATE',
+                'from_currency': symbol.split('_')[0] if '_' in symbol else symbol,
+                'to_currency': 'USD',
+                'apikey': api_key
+            }
+            
+            response = requests.get(url, params=params, timeout=10)
             data = response.json()
             
-            stats = {
-                "price": data['market_data']['current_price']['usd'],
-                "high_24h": data['market_data']['high_24h']['usd'],
-                "low_24h": data['market_data']['low_24h']['usd'],
-                "change_24h": data['market_data']['price_change_percentage_24h']
-            }
+            if 'Realtime Currency Exchange Rate' in data:
+                return float(data['Realtime Currency Exchange Rate']['5. Exchange Rate'])
+                
+        except Exception as e:
+            print(f"Error fetching from Alpha Vantage: {e}")
             
-            return stats
+        return 50000.0 + (time.time() % 1000)
+        
+    def get_market_stats(self, symbol="BTC_USDT"):
+        """Get market statistics from crypto.com"""
+        try:
+            url = f"{self.config['crypto_com']['api_url']}/public/get-ticker"
+            params = {"instrument_name": symbol}
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+            
+            if data.get('code') == 0 and data.get('result'):
+                ticker = data['result']['data'][0]
+                stats = {
+                    "price": float(ticker['a']),  # Ask price
+                    "high_24h": float(ticker['h']),
+                    "low_24h": float(ticker['l']),
+                    "change_24h": float(ticker['c'])
+                }
+                return stats
             
         except Exception as e:
-            # Return mock data if API fails
-            return {
-                "price": 50000.0,
-                "high_24h": 52000.0,
-                "low_24h": 48000.0,
-                "change_24h": 2.5
-            }
+            print(f"Error fetching market stats: {e}")
+            
+        # Return mock data if API fails
+        return {
+            "price": 50000.0,
+            "high_24h": 52000.0,
+            "low_24h": 48000.0,
+            "change_24h": 2.5
+        }
             
     def get_historical_data(self, symbol="bitcoin", days=7):
         """Get historical price data"""
