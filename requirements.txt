@@ -1,0 +1,6 @@
+requests>=2.31.0
+# Optional integrations (only needed if using Google Sheets live)
+google-api-python-client>=2.129.0
+google-auth>=2.35.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.2.0
