@@ -1,9 +1,10 @@
 import os, json, sqlite3, threading, time, random
 from datetime import datetime
+from modules.utils.paths import db_path
 
 class CryptoComMarketFeed:
-    def __init__(self, db_path='/opt/tps19/data/market_feed.db'):
-        self.db_path = db_path
+    def __init__(self, db_path_override=None):
+        self.db_path = db_path_override or db_path('market_feed.db')
         self.exchange = 'crypto.com'
         self.active_feeds = {}
         self.lock = threading.Lock()
@@ -47,5 +48,20 @@ class CryptoComMarketFeed:
         except Exception as e:
             print(f"❌ Failed to get data: {e}")
             return []
+
+    # For test suite compatibility
+    def get_feed_status(self):
+        return {
+            'active_feeds': len(self.active_feeds),
+            'exchange': self.exchange
+        }
+
+    def test_functionality(self):
+        try:
+            self.start_feed('BTC_USDT')
+            data = self.get_latest_data('BTC_USDT', 1)
+            return bool(data)
+        except Exception:
+            return False
 
 market_feed = CryptoComMarketFeed()

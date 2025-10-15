@@ -1,9 +1,10 @@
 import os, json, sqlite3, threading, time
 from datetime import datetime
+from modules.utils.paths import db_path
 
 class CryptoComAIMemoryManager:
-    def __init__(self, db_path='/opt/tps19/data/ai_memory.db'):
-        self.db_path = db_path
+    def __init__(self, db_path_override=None):
+        self.db_path = db_path_override or db_path('ai_memory.db')
         self.exchange = 'crypto.com'
         self.lock = threading.Lock()
         self._init_database()
@@ -57,5 +58,21 @@ class CryptoComAIMemoryManager:
             return {'total_decisions': total, 'exchange': 'crypto.com'}
         except Exception as e:
             return {'total_decisions': 0, 'exchange': 'crypto.com', 'error': str(e)}
+
+    # Added for compatibility with test suite
+    def get_performance_summary(self):
+        stats = self.get_stats()
+        return {
+            'total_decisions': stats.get('total_decisions', 0),
+            'exchange': stats.get('exchange', 'crypto.com')
+        }
+
+    def test_functionality(self):
+        try:
+            test_id = f"test_{int(time.time())}"
+            ok = self.store_decision(test_id, 'TestAI', 'unit_test', {'foo': 'bar'}, 0.9)
+            return bool(ok)
+        except Exception:
+            return False
 
 ai_memory = CryptoComAIMemoryManager()

@@ -3,7 +3,13 @@
 
 import sys, os, time, json
 from datetime import datetime
-sys.path.insert(0, '/opt/tps19/modules')
+try:
+    from modules.utils.paths import get_base_dir
+    modules_path = os.path.join(get_base_dir(), 'modules')
+    if modules_path not in sys.path:
+        sys.path.insert(0, modules_path)
+except Exception:
+    pass
 
 try:
     from brain.ai_memory import ai_memory
@@ -80,14 +86,15 @@ class TPS19TestSuite:
             import sqlite3
             
             # Test AI Memory database
-            conn = sqlite3.connect('/opt/tps19/data/ai_memory.db')
+            from modules.utils.paths import db_path
+            conn = sqlite3.connect(db_path('ai_memory.db'))
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM ai_decisions")
             ai_count = cursor.fetchone()[0]
             conn.close()
             
             # Test Market Feed database
-            conn = sqlite3.connect('/opt/tps19/data/market_data.db')
+            conn = sqlite3.connect(db_path('market_data.db'))
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM market_data")
             market_count = cursor.fetchone()[0]

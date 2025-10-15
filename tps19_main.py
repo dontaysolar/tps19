@@ -3,7 +3,17 @@
 
 import sys, os, time, threading, signal
 from datetime import datetime
-sys.path.insert(0, '/opt/tps19/modules')
+# Ensure modules path (prefer env base, fallback to repo)
+try:
+    from modules.utils.paths import get_base_dir
+    modules_path = os.path.join(get_base_dir(), 'modules')
+    if modules_path not in sys.path:
+        sys.path.insert(0, modules_path)
+except Exception:
+    # Fallback for very early bootstrap
+    repo_modules = os.path.join(os.path.dirname(__file__), 'modules')
+    if os.path.isdir(repo_modules) and repo_modules not in sys.path:
+        sys.path.insert(0, repo_modules)
 
 # Import all modules
 try:
@@ -35,6 +45,13 @@ class TPS19UnifiedSystem:
             
             # Start N8N service
             n8n_integration.start_n8n_service()
+            # Prepare orchestrator engine once
+            try:
+                from trading_engine import TradingEngine
+                engine = TradingEngine()
+            except Exception as e:
+                print(f"⚠️ TradingEngine init failed: {e}")
+                engine = None
             
             # Main system loop
             while self.running:
@@ -47,6 +64,15 @@ class TPS19UnifiedSystem:
                 }
                 
                 siul_result = siul_core.process_unified_logic(test_data)
+
+                # Orchestrator step
+                if engine:
+                    try:
+                        engine_result = engine.step("bitcoin", "BTC_USDT")
+                    except Exception as e:
+                        engine_result = {'error': str(e)}
+                else:
+                    engine_result = {'error': 'engine not initialized'}
                 
                 if siul_result and siul_result.get('final_decision'):
                     decision = siul_result['final_decision']
@@ -63,6 +89,8 @@ class TPS19UnifiedSystem:
                 print(f"💓 TPS19 Unified System - {datetime.now()}")
                 print(f"🧠 SIUL Decision: {siul_result.get('final_decision', {}).get('decision', 'hold')}")
                 print(f"📊 Confidence: {siul_result.get('confidence', 0):.2%}")
+                if 'error' in engine_result:
+                    print(f"⚠️ Engine: {engine_result['error']}")
                 
                 time.sleep(30)
                 

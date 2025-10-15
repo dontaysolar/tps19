@@ -4,12 +4,13 @@
 import os, json, requests, time, threading
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+from modules.utils.paths import config_path, logs_path
 
 class TPS19N8NIntegration:
     """Complete N8N Integration for TPS19"""
     
-    def __init__(self, config_path='/opt/tps19/config/n8n_config.json'):
-        self.config_path = config_path
+    def __init__(self, config_override: Optional[str] = None):
+        self.config_path = config_override or config_path('n8n_config.json')
         self.n8n_url = 'http://localhost:5678'
         self.webhook_endpoints = {}
         self.active_workflows = {}
@@ -223,7 +224,7 @@ class TPS19N8NIntegration:
                 
             # Start N8N service
             print("🚀 Starting N8N service...")
-            os.system("nohup n8n start > /opt/tps19/logs/n8n.log 2>&1 &")
+            os.system(f"nohup n8n start > {logs_path('n8n.log')} 2>&1 &")
             
             # Wait for startup
             time.sleep(10)
