@@ -30,12 +30,29 @@ TPS19 is a Python-based cryptocurrency trading system designed for automated tra
 - N8N webhook integration for automation
 - Risk management framework
 - Order and trade tracking
+- **Enhanced Market Simulation** with:
+  - Realistic price movements and volatility
+  - Multiple market conditions (bull, bear, sideways, flash crash)
+  - Market events and news impact
+  - Order book simulation
+  - Technical indicators (SMA, RSI)
+  - Correlation between assets
+- **Comprehensive Backtesting Engine** with:
+  - Multiple order types (market, limit, stop)
+  - Realistic commission and slippage
+  - Performance metrics (Sharpe, Sortino, Calmar ratios)
+  - Equity curve tracking
+  - Trade analytics
+- **Web-based Simulation Dashboard** with:
+  - Real-time price updates
+  - Market condition control
+  - Live backtesting
+  - Performance visualization
 
 ### Planned
 - Real Crypto.com API integration
 - WebSocket support for real-time data
 - Machine learning models for prediction
-- Backtesting engine
 - Performance analytics dashboard
 - Multi-exchange support
 - Advanced trading strategies
@@ -146,6 +163,16 @@ python main.py status
 ### Running Backtest
 ```bash
 python main.py backtest --symbol BTC_USDT --strategy trend_following --days 30
+```
+
+### Running Enhanced Simulation Demo
+```bash
+# Run the comprehensive simulation demo
+python run_enhanced_simulation.py
+
+# Start the web dashboard
+python simulation/simulation_dashboard.py
+# Then open http://localhost:8000 in your browser
 ```
 
 ## System Components
