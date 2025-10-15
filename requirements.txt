@@ -1,0 +1,28 @@
+# TPS19 Crypto Trading System - Python Dependencies
+
+# Core Dependencies
+requests>=2.31.0         # HTTP requests for API calls
+python-dotenv>=1.0.0     # Environment variable management
+
+# Database
+# sqlite3 is built into Python 3.x
+
+# N8N Integration (optional - runs as separate service)
+# n8n is Node.js based, not a Python package
+
+# Data Analysis (optional, for future enhancements)
+# pandas>=2.0.0
+# numpy>=1.24.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+
+# Code Quality
+black>=23.7.0            # Code formatting
+flake8>=6.1.0            # Linting
+mypy>=1.5.0              # Type checking
+
+# Development
+ipython>=8.14.0          # Interactive shell for debugging

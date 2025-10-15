@@ -1,0 +1,79 @@
+# TPS19 .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+data/databases/*.db
+data/*.db
+
+# Logs
+*.log
+logs/*.log
+
+# Backups
+backups/
+*.backup
+*.bak
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# N8N
+.n8n/
+
+# System
+*.pid
+.cache/
+
+# Project Specific
+data/databases/
+data/*.db
+data/test_process.pid
+test_patch_file.txt
