@@ -3,7 +3,7 @@
 
 import sys
 import os
-sys.path.append('/opt/tps19/modules')
+sys.path.append('/workspace/modules')
 
 def test_modules():
     """Test all TPS19 modules"""

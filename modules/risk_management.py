@@ -7,7 +7,7 @@ from datetime import datetime
 
 class RiskManager:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/databases/risk.db"
+        self.db_path = "/workspace/data/databases/risk.db"
         self.max_position_size = 0.1  # 10% max position size
         self.max_daily_loss = 0.05    # 5% max daily loss
         self.init_database()
