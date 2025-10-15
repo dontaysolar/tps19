@@ -3,7 +3,13 @@
 
 import sys
 import os
-sys.path.append('/opt/tps19/modules')
+try:
+    from modules.utils.paths import get_base_dir
+    modules_path = os.path.join(get_base_dir(), 'modules')
+    if modules_path not in sys.path:
+        sys.path.append(modules_path)
+except Exception:
+    pass
 
 def test_modules():
     """Test all TPS19 modules"""
@@ -12,6 +18,8 @@ def test_modules():
     try:
         from trading_engine import TradingEngine
         engine = TradingEngine()
+        # perform single step to validate dependent imports
+        engine.step("bitcoin", "BTC_USDT")
         results['trading_engine'] = "✅ PASS"
     except Exception as e:
         results['trading_engine'] = f"❌ FAIL: {e}"

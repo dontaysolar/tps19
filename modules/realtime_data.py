@@ -12,10 +12,11 @@ import time
 import os
 from datetime import datetime
 import logging
+from modules.utils.paths import db_path
 
 class RealtimeDataFeed:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/market_data.db"
+        self.db_path = db_path("market_data.db")
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.init_database()
         self.active = False

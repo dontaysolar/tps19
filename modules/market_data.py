@@ -6,10 +6,11 @@ import requests
 import sqlite3
 import time
 from datetime import datetime
+from modules.utils.paths import db_path
 
 class MarketData:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/databases/market_data.db"
+        self.db_path = db_path("market_data.db")
         self.init_database()
         
     def init_database(self):

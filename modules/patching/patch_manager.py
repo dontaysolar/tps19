@@ -4,15 +4,16 @@
 import os, json, sqlite3, shutil, hashlib, time, subprocess
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+from modules.utils.paths import db_path, patches_dir, backups_dir, system_dir
 
 class TPS19PatchManager:
     """Complete Patching and Rollback System"""
     
-    def __init__(self, db_path='/opt/tps19/data/patch_manager.db'):
-        self.db_path = db_path
-        self.patches_dir = '/opt/tps19/patches'
-        self.backups_dir = '/opt/tps19/backups'
-        self.system_dir = '/opt/tps19'
+    def __init__(self, db_path_override=None):
+        self.db_path = db_path_override or db_path('patch_manager.db')
+        self.patches_dir = patches_dir()
+        self.backups_dir = backups_dir()
+        self.system_dir = system_dir()
         self.exchange = 'crypto.com'
         
         self._init_database()

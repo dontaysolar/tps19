@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import os, json, sqlite3, time, random
 from datetime import datetime, timedelta
+from modules.utils.paths import db_path
 class TPS19SimulationEngine:
     def __init__(self, initial_balance=10000.0):
-        self.db_path = '/opt/tps19/data/simulation.db'
+        self.db_path = db_path('simulation.db')
         self.initial_balance = initial_balance
         self.current_balance = initial_balance
         self.portfolio = {}
