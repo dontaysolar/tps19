@@ -1,0 +1,8 @@
+#!/bin/bash
+# Helios Protocol CLI Wrapper
+
+# Ensure we're in the right directory
+cd /workspace 2>/dev/null || cd /opt/tps19 2>/dev/null
+
+# Run the Helios CLI with all arguments
+python3 modules/helios/helios_cli.py "$@"

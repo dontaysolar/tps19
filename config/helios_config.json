@@ -1,0 +1,60 @@
+{
+  "helios_protocol": {
+    "enabled": true,
+    "database_path": "/opt/tps19/data/helios_protocol.db",
+    "monitoring": {
+      "enabled": true,
+      "interval_seconds": 30
+    },
+    "rollback": {
+      "automatic": true,
+      "max_retries": 3,
+      "retry_delay_seconds": 10
+    },
+    "postmortem": {
+      "severity_1_blocks_deployment": true,
+      "auto_create_on_rollback": true,
+      "reminder_interval_hours": 24
+    },
+    "phases": {
+      "pre_deployment": {
+        "timeout_seconds": 300,
+        "required_checks": [
+          "system_health",
+          "dependency_verification",
+          "configuration_validation"
+        ]
+      },
+      "deployment": {
+        "timeout_seconds": 600,
+        "rollback_on_timeout": true
+      },
+      "post_deployment": {
+        "timeout_seconds": 300,
+        "verification_delay_seconds": 30
+      },
+      "verification": {
+        "duration_seconds": 1800,
+        "metrics_threshold": {
+          "error_rate_percent": 5,
+          "response_time_ms": 1000,
+          "memory_usage_percent": 80
+        }
+      },
+      "monitoring": {
+        "error_threshold": 3,
+        "error_window_seconds": 300
+      }
+    },
+    "coordinator": {
+      "agent_timeout_seconds": 300,
+      "task_timeout_seconds": 3600,
+      "max_concurrent_tasks": 10
+    },
+    "notifications": {
+      "on_rollback": true,
+      "on_postmortem_created": true,
+      "on_deployment_blocked": true
+    }
+  }
+}
