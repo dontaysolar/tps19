@@ -4,15 +4,17 @@
 import os, json, sqlite3, shutil, hashlib, time, subprocess
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+from util.paths import get_base_dir
 
 class TPS19PatchManager:
     """Complete Patching and Rollback System"""
     
-    def __init__(self, db_path='/opt/tps19/data/patch_manager.db'):
-        self.db_path = db_path
-        self.patches_dir = '/opt/tps19/patches'
-        self.backups_dir = '/opt/tps19/backups'
-        self.system_dir = '/opt/tps19'
+    def __init__(self, db_path: str | None = None):
+        base = get_base_dir()
+        self.db_path = db_path or os.path.join(base, 'data', 'patch_manager.db')
+        self.patches_dir = os.path.join(base, 'patches')
+        self.backups_dir = os.path.join(base, 'backups')
+        self.system_dir = base
         self.exchange = 'crypto.com'
         
         self._init_database()
@@ -407,7 +409,7 @@ class TPS19PatchManager:
                 return False
                 
             # Step 2: Create test file
-            test_file = '/opt/tps19/test_patch_file.txt'
+            test_file = os.path.join(self.system_dir, 'test_patch_file.txt')
             with open(test_file, 'w') as f:
                 f.write("Original content")
                 

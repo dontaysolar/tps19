@@ -3,11 +3,17 @@
 
 import sys, os, time, json
 from datetime import datetime
+# Allow running from repository without system installation
+repo_modules = os.path.join(os.getcwd(), 'modules')
+if os.path.isdir(repo_modules):
+    sys.path.insert(0, repo_modules)
 sys.path.insert(0, '/opt/tps19/modules')
 
 try:
     from brain.ai_memory import ai_memory
     from market.market_feed import market_feed
+    from telegram_bot import telegram_bot
+    from gsheets_integration import gsheets_client
 except ImportError as e:
     print(f"❌ Module import failed: {e}")
     sys.exit(1)
@@ -28,7 +34,9 @@ class TPS19TestSuite:
             ("Database Connectivity Test", self.test_database_connectivity),
             ("Data Integrity Test", self.test_data_integrity),
             ("Performance Test", self.test_performance),
-            ("Integration Test", self.test_integration)
+            ("Integration Test", self.test_integration),
+            ("Telegram Integration Test", self.test_telegram),
+            ("Google Sheets Integration Test", self.test_gsheets)
         ]
         
         passed = 0
@@ -80,14 +88,18 @@ class TPS19TestSuite:
             import sqlite3
             
             # Test AI Memory database
-            conn = sqlite3.connect('/opt/tps19/data/ai_memory.db')
+            try:
+                from modules.util.paths import data_path  # when installed to /opt/tps19
+            except ImportError:
+                from util.paths import data_path  # when running from repo
+            conn = sqlite3.connect(data_path('ai_memory.db'))
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM ai_decisions")
             ai_count = cursor.fetchone()[0]
             conn.close()
             
             # Test Market Feed database
-            conn = sqlite3.connect('/opt/tps19/data/market_data.db')
+            conn = sqlite3.connect(data_path('market_data.db'))
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM market_data")
             market_count = cursor.fetchone()[0]
@@ -178,6 +190,22 @@ class TPS19TestSuite:
         except Exception as e:
             print(f"Integration test error: {e}")
             return False
+
+    def test_telegram(self):
+        """Test Telegram integration (no-op pass if not configured)."""
+        try:
+            return telegram_bot.test_functionality()
+        except Exception as e:
+            print(f"Telegram test error: {e}")
+            return False
+
+    def test_gsheets(self):
+        """Test Google Sheets integration (no-op pass if not configured)."""
+        try:
+            return gsheets_client.test_functionality()
+        except Exception as e:
+            print(f"Google Sheets test error: {e}")
+            return False
             
     def generate_test_report(self):
         """Generate detailed test report"""
@@ -194,8 +222,12 @@ class TPS19TestSuite:
         }
         
         # Save report
-        os.makedirs('/opt/tps19/reports', exist_ok=True)
-        report_file = f"/opt/tps19/reports/test_report_{int(time.time())}.json"
+        try:
+            from modules.util.paths import reports_path  # when installed to /opt/tps19
+        except ImportError:
+            from util.paths import reports_path  # when running from repo
+        os.makedirs(reports_path(), exist_ok=True)
+        report_file = f"{reports_path()}/test_report_{int(time.time())}.json"
         
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)

@@ -4,12 +4,13 @@
 import os, json, sqlite3, threading, time, hashlib
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
+from util.paths import data_path
 
 class SIULCore:
     """Smart Intelligent Unified Logic - Central Intelligence System"""
     
-    def __init__(self, db_path='/opt/tps19/data/siul_core.db'):
-        self.db_path = db_path
+    def __init__(self, db_path: str | None = None):
+        self.db_path = db_path or data_path('siul_core.db')
         self.exchange = 'crypto.com'
         self.intelligence_modules = {}
         self.unified_state = {}
