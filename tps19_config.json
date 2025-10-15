@@ -1,0 +1,52 @@
+{
+  "system": {
+    "name": "TPS19",
+    "version": "2.0.0",
+    "environment": "production",
+    "debug": false,
+    "workspace": "/workspace"
+  },
+  "trading": {
+    "mode": "simulation",
+    "default_pair": "BTC/USDT",
+    "max_position_size": 0.1,
+    "risk_per_trade": 0.02,
+    "commission_rate": 0.001,
+    "slippage_rate": 0.0005
+  },
+  "exchanges": {
+    "primary": "crypto.com",
+    "secondary": "alpha_vantage",
+    "crypto_com": {
+      "sandbox": true,
+      "rate_limit": 0.1
+    },
+    "alpha_vantage": {
+      "rate_limit": 12
+    }
+  },
+  "notifications": {
+    "telegram": {
+      "enabled": false,
+      "bot_token": "",
+      "chat_id": ""
+    },
+    "interval": 300
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "/workspace/logs/tps19.log",
+    "max_size": "10MB",
+    "backup_count": 5
+  },
+  "google_sheets": {
+    "enabled": false,
+    "spreadsheet_id": "",
+    "credentials_file": "credentials.json"
+  },
+  "database": {
+    "path": "/workspace/data/databases/",
+    "backup_interval": 3600,
+    "max_connections": 10
+  }
+}

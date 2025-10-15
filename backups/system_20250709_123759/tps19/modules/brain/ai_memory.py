@@ -2,7 +2,7 @@ import os, json, sqlite3, threading, time
 from datetime import datetime
 
 class CryptoComAIMemoryManager:
-    def __init__(self, db_path='/opt/tps19/data/ai_memory.db'):
+    def __init__(self, db_path='/workspace/data/ai_memory.db'):
         self.db_path = db_path
         self.exchange = 'crypto.com'
         self.lock = threading.Lock()

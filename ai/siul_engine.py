@@ -13,7 +13,7 @@ import os
 
 class SIULEngine:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/siul.db"
+        self.db_path = "/workspace/data/siul.db"
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.init_database()
         self.models = {}

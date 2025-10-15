@@ -3,7 +3,7 @@
 
 import sys, os, time, json
 from datetime import datetime
-sys.path.insert(0, '/opt/tps19/modules')
+sys.path.insert(0, '/workspace/modules')
 
 try:
     from brain.ai_memory import ai_memory
@@ -185,8 +185,8 @@ class TPS19StartMenu:
             'exchange': 'crypto.com',
             'supported_pairs': ['BTC_USDT', 'ETH_USDT', 'ADA_USDT', 'DOT_USDT', 'MATIC_USDT'],
             'ai_personalities': ['Athena', 'Apollo', 'Hermes', 'Artemis'],
-            'database_path': '/opt/tps19/data/',
-            'log_path': '/opt/tps19/logs/',
+            'database_path': '/workspace/data/',
+            'log_path': '/workspace/logs/',
             'update_interval': 5,
             'max_cache_size': 1000
         }
@@ -215,7 +215,7 @@ class TPS19StartMenu:
                 'market_stats': market_feed.get_feed_status()
             }
             
-            status_file = f"/opt/tps19/reports/status_report_{int(time.time())}.json"
+            status_file = f"/workspace/reports/status_report_{int(time.time())}.json"
             with open(status_file, 'w') as f:
                 json.dump(status_report, f, indent=2)
                 
@@ -233,7 +233,7 @@ class TPS19StartMenu:
         
         # Check file system
         print("📁 File System Check:")
-        required_dirs = ['/opt/tps19/data', '/opt/tps19/logs', '/opt/tps19/modules']
+        required_dirs = ['/workspace/data', '/workspace/logs', '/workspace/modules']
         for dir_path in required_dirs:
             if os.path.exists(dir_path):
                 print(f"✅ {dir_path}")
@@ -242,7 +242,7 @@ class TPS19StartMenu:
                 
         # Check databases
         print("\n🗄️ Database Check:")
-        db_files = ['/opt/tps19/data/ai_memory.db', '/opt/tps19/data/market_data.db']
+        db_files = ['/workspace/data/ai_memory.db', '/workspace/data/market_data.db']
         for db_file in db_files:
             if os.path.exists(db_file):
                 size = os.path.getsize(db_file)
