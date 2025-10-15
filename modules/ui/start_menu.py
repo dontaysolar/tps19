@@ -2,6 +2,7 @@
 """TPS19 Interactive Start Menu and Dashboard"""
 
 import sys, os, time, json
+from services.path_config import path
 from datetime import datetime
 sys.path.insert(0, '/opt/tps19/modules')
 
@@ -185,8 +186,8 @@ class TPS19StartMenu:
             'exchange': 'crypto.com',
             'supported_pairs': ['BTC_USDT', 'ETH_USDT', 'ADA_USDT', 'DOT_USDT', 'MATIC_USDT'],
             'ai_personalities': ['Athena', 'Apollo', 'Hermes', 'Artemis'],
-            'database_path': '/opt/tps19/data/',
-            'log_path': '/opt/tps19/logs/',
+            'database_path': path('data/'),
+            'log_path': path('logs/'),
             'update_interval': 5,
             'max_cache_size': 1000
         }
@@ -215,7 +216,7 @@ class TPS19StartMenu:
                 'market_stats': market_feed.get_feed_status()
             }
             
-            status_file = f"/opt/tps19/reports/status_report_{int(time.time())}.json"
+            status_file = path(f"reports/status_report_{int(time.time())}.json")
             with open(status_file, 'w') as f:
                 json.dump(status_report, f, indent=2)
                 
