@@ -3,7 +3,7 @@
 
 import sys, os, time, json
 from datetime import datetime
-sys.path.insert(0, '/opt/tps19/modules')
+sys.path.insert(0, '/workspace/modules')
 
 try:
     from brain.ai_memory import ai_memory
@@ -80,14 +80,14 @@ class TPS19TestSuite:
             import sqlite3
             
             # Test AI Memory database
-            conn = sqlite3.connect('/opt/tps19/data/ai_memory.db')
+            conn = sqlite3.connect('/workspace/data/ai_memory.db')
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM ai_decisions")
             ai_count = cursor.fetchone()[0]
             conn.close()
             
             # Test Market Feed database
-            conn = sqlite3.connect('/opt/tps19/data/market_data.db')
+            conn = sqlite3.connect('/workspace/data/market_data.db')
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM market_data")
             market_count = cursor.fetchone()[0]
@@ -194,8 +194,8 @@ class TPS19TestSuite:
         }
         
         # Save report
-        os.makedirs('/opt/tps19/reports', exist_ok=True)
-        report_file = f"/opt/tps19/reports/test_report_{int(time.time())}.json"
+        os.makedirs('/workspace/reports', exist_ok=True)
+        report_file = f"/workspace/reports/test_report_{int(time.time())}.json"
         
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)

@@ -2,7 +2,7 @@ import os, json, sqlite3, threading, time, random
 from datetime import datetime
 
 class CryptoComMarketFeed:
-    def __init__(self, db_path='/opt/tps19/data/market_feed.db'):
+    def __init__(self, db_path='/workspace/data/market_feed.db'):
         self.db_path = db_path
         self.exchange = 'crypto.com'
         self.active_feeds = {}

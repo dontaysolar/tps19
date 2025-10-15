@@ -13,7 +13,7 @@ import logging
 
 class DTCPSignalProvider:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/dtcp_signals.db"
+        self.db_path = "/workspace/data/dtcp_signals.db"
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.init_database()
         self.active = False
