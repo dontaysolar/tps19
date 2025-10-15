@@ -2,14 +2,15 @@
 """TPS19 N8N Integration - Complete Automation System"""
 
 import os, json, requests, time, threading
+from services.path_config import path
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
 class TPS19N8NIntegration:
     """Complete N8N Integration for TPS19"""
     
-    def __init__(self, config_path='/opt/tps19/config/n8n_config.json'):
-        self.config_path = config_path
+    def __init__(self, config_path=None):
+        self.config_path = config_path or path('config/n8n_config.json')
         self.n8n_url = 'http://localhost:5678'
         self.webhook_endpoints = {}
         self.active_workflows = {}

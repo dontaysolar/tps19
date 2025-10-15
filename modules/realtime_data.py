@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
 Real-time Market Data Feed
-API integration for live data
+Primary source: Crypto.com public API
+Fallback: Alpha Vantage (requires ALPHA_VANTAGE_API_KEY)
 """
 
 import json
+import os
 import requests
+from services.path_config import path
 import sqlite3
 import threading
 import time
@@ -15,11 +18,12 @@ import logging
 
 class RealtimeDataFeed:
     def __init__(self):
-        self.db_path = "/opt/tps19/data/market_data.db"
+        self.db_path = path('data/market_data.db')
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.init_database()
         self.active = False
         self.data_thread = None
+        self.alpha_vantage_key = os.getenv("ALPHA_VANTAGE_API_KEY")
         
     def init_database(self):
         try:
@@ -42,6 +46,17 @@ class RealtimeDataFeed:
             print("✅ Market data database initialized")
         except Exception as e:
             print(f"❌ Market data database error: {e}")
+    
+    def ensure_schema_exists(self):
+        """Idempotently ensure the market_data table exists for connectivity tests."""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1 FROM market_data LIMIT 1")
+            conn.close()
+        except Exception:
+            # Re-init if missing
+            self.init_database()
         
     def start_feed(self):
         """Start real-time data feed"""
@@ -65,11 +80,10 @@ class RealtimeDataFeed:
         """Main data collection loop"""
         while self.active:
             try:
-                # Fetch data from CoinGecko API (free tier)
-                symbols = ['bitcoin', 'ethereum', 'cardano', 'solana', 'chainlink']
-                
-                for symbol in symbols:
-                    data = self.fetch_price_data(symbol)
+                # Fetch data from Crypto.com (preferred)
+                instruments = ['BTC_USDT', 'ETH_USDT', 'ADA_USDT', 'SOL_USDT', 'LINK_USDT']
+                for instrument in instruments:
+                    data = self.fetch_price_data(instrument)
                     if data:
                         self.store_market_data(data)
                         
@@ -79,35 +93,64 @@ class RealtimeDataFeed:
                 print(f"❌ Data feed error: {e}")
                 time.sleep(120)  # Wait longer on error
                 
-    def fetch_price_data(self, symbol):
-        """Fetch price data from API"""
+    def fetch_price_data(self, instrument_name):
+        """Fetch price data from Crypto.com, fallback to Alpha Vantage"""
+        # Primary: Crypto.com public ticker
         try:
-            url = f"https://api.coingecko.com/api/v3/simple/price"
-            params = {
-                'ids': symbol,
-                'vs_currencies': 'usd',
-                'include_24hr_vol': 'true',
-                'include_24hr_change': 'true',
-                'include_market_cap': 'true'
-            }
-            
+            url = "https://api.crypto.com/v2/public/get-ticker"
+            params = {"instrument_name": instrument_name}
             response = requests.get(url, params=params, timeout=10)
-            data = response.json()
-            
-            if symbol in data:
-                coin_data = data[symbol]
-                return {
-                    'symbol': symbol.upper(),
-                    'price': coin_data['usd'],
-                    'volume': coin_data.get('usd_24h_vol', 0),
-                    'market_cap': coin_data.get('usd_market_cap', 0),
-                    'price_change_24h': coin_data.get('usd_24h_change', 0),
-                    'source': 'coingecko'
-                }
-                
+            response.raise_for_status()
+            payload = response.json()
+            if payload.get("result") and payload["result"].get("data"):
+                entry = payload["result"]["data"][0]
+                price_str = entry.get("k") or entry.get("c") or entry.get("a") or entry.get("b")
+                price = float(price_str) if price_str is not None else None
+                if price is not None:
+                    return {
+                        'symbol': instrument_name,
+                        'price': price,
+                        'volume': float(entry.get('v', 0) or 0),
+                        'market_cap': 0.0,
+                        'price_change_24h': float(entry.get('chg_pct', 0) or 0),
+                        'source': 'crypto.com'
+                    }
         except Exception as e:
-            print(f"❌ API fetch error for {symbol}: {e}")
-            
+            print(f"❌ Crypto.com API fetch error for {instrument_name}: {e}")
+
+        # Fallback: Alpha Vantage
+        try:
+            if not self.alpha_vantage_key:
+                raise RuntimeError("Alpha Vantage API key not set")
+            symbol_base = instrument_name.split("_")[0].replace("USD", "BTC").replace("USDT", "BTC") if instrument_name.endswith("BTC") else instrument_name.split("_")[0]
+            url = "https://www.alphavantage.co/query"
+            params = {
+                "function": "CRYPTO_INTRADAY",
+                "symbol": symbol_base,
+                "market": "USD",
+                "interval": "5min",
+                "apikey": self.alpha_vantage_key,
+            }
+            response = requests.get(url, params=params, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+            series = data.get("Time Series Crypto (5min)") or {}
+            latest_ts = next(iter(series.keys())) if series else None
+            if latest_ts:
+                bar = series[latest_ts]
+                price = float(bar.get("4. close") or bar.get("1. open"))
+                volume = float(bar.get("5. volume", 0)) if "5. volume" in bar else 0.0
+                return {
+                    'symbol': instrument_name,
+                    'price': price,
+                    'volume': volume,
+                    'market_cap': 0.0,
+                    'price_change_24h': 0.0,
+                    'source': 'alpha_vantage'
+                }
+        except Exception as e:
+            print(f"❌ Alpha Vantage API fetch error for {instrument_name}: {e}")
+
         return None
         
     def store_market_data(self, data):
@@ -187,14 +230,15 @@ class RealtimeDataFeed:
 if __name__ == "__main__":
     feed = RealtimeDataFeed()
     print("✅ Real-time Data Feed initialized")
-    
-    # Test data fetch
-    data = feed.fetch_price_data('bitcoin')
+
+    # Test data fetch using Crypto.com instrument naming
+    instrument = 'BTC_USDT'
+    data = feed.fetch_price_data(instrument)
     if data:
         feed.store_market_data(data)
         print(f"✅ Test data stored: {data}")
-        
+
     # Test latest price
-    latest = feed.get_latest_price('BITCOIN')
+    latest = feed.get_latest_price(instrument)
     if latest:
-        print(f"✅ Latest BTC price: ${latest['price']:,.2f}")
+        print(f"✅ Latest {instrument} price: ${latest['price']:,.2f}")
