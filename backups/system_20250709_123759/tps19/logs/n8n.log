@@ -1,4 +1,0 @@
-
-Your Node.js version 20.18.1 is currently not supported by n8n.
-Please use a Node.js version that satisfies the following version range: >=20.19 <= 24.x
-

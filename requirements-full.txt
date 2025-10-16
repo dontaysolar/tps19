@@ -1,0 +1,41 @@
+# TPS19 APEX Organism - Complete Dependencies
+# Core + Enhancements + Dashboard
+
+# ===== CORE ORGANISM =====
+python-dotenv>=1.0.0
+
+# ===== DATA & ANALYSIS =====
+pandas>=2.0.0           # Data manipulation
+numpy>=1.24.0           # Numerical computing
+scipy>=1.11.0           # Scientific computing (for portfolio optimization)
+
+# ===== MACHINE LEARNING =====
+scikit-learn>=1.3.0     # ML models (Random Forest, Gradient Boosting)
+tensorflow>=2.14.0      # Deep learning (LSTM)
+ta>=0.10.0              # Technical analysis indicators
+
+# ===== EXCHANGE INTEGRATION =====
+ccxt>=4.0.0             # Cryptocurrency exchange integration
+
+# ===== API & WEBSOCKET =====
+Flask>=3.0.0            # API server
+Flask-CORS>=4.0.0       # CORS support
+Flask-SocketIO>=5.3.0   # WebSocket support
+python-socketio>=5.10.0 # Socket.IO
+eventlet>=0.33.0        # Async support
+websockets>=12.0        # WebSocket client
+
+# ===== NOTIFICATIONS =====
+requests>=2.31.0        # HTTP requests (for alerts, sentiment)
+
+# ===== MONITORING & UTILITIES =====
+psutil>=5.9.0           # System monitoring
+
+# ===== DATABASE =====
+# sqlite3 - Built into Python
+
+# ===== OPTIONAL (For Production) =====
+# gunicorn>=21.2.0      # Production server
+# sentry-sdk>=1.40.0    # Error tracking
+# redis>=5.0.0          # Caching
+# celery>=5.3.0         # Task queue

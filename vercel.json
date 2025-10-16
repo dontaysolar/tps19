@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "name": "tps19-apex-dashboard",
+  "buildCommand": "cd dashboard && npm install && npm run build",
+  "outputDirectory": "dashboard/.next",
+  "installCommand": "cd dashboard && npm install",
+  "devCommand": "cd dashboard && npm run dev",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "rewrites": [
+    {
+      "source": "/api/organism/:path*",
+      "destination": "/api/proxy"
+    }
+  ]
+}
