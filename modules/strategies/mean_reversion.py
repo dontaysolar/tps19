@@ -2,8 +2,16 @@
 """Mean Reversion Strategy - Buy Oversold, Sell Overbought"""
 
 from typing import Dict, Optional
-import pandas as pd
-import numpy as np
+
+try:
+    import pandas as pd
+    import numpy as np
+    HAS_PANDAS = True
+except ImportError:
+    HAS_PANDAS = False
+    pd = None
+    np = None
+
 from .base import BaseStrategy
 from modules.utils.logger import get_logger
 
@@ -29,16 +37,20 @@ class MeanReversionStrategy(BaseStrategy):
         self.avg_loss = 0.03
         self.profit_factor = 1.5
         
-    def analyze(self, df: pd.DataFrame) -> Optional[Dict]:
+    def analyze(self, df) -> Optional[Dict]:
         """
         Analyze for mean reversion opportunities
         
         Args:
-            df: OHLCV DataFrame
+            df: OHLCV DataFrame (pandas) or dict
             
         Returns:
             Signal dict or None
         """
+        if not HAS_PANDAS:
+            logger.warning("Pandas not available, mean reversion disabled")
+            return None
+        
         if len(df) < 30:
             return None
         

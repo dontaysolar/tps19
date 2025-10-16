@@ -2,8 +2,16 @@
 """Trend Following Strategy - Ride Strong Trends"""
 
 from typing import Dict, Optional
-import pandas as pd
-import numpy as np
+
+try:
+    import pandas as pd
+    import numpy as np
+    HAS_PANDAS = True
+except ImportError:
+    HAS_PANDAS = False
+    pd = None
+    np = None
+
 from .base import BaseStrategy
 from modules.utils.logger import get_logger
 
@@ -29,16 +37,20 @@ class TrendFollowingStrategy(BaseStrategy):
         self.avg_loss = 0.02
         self.profit_factor = 1.8
         
-    def analyze(self, df: pd.DataFrame) -> Optional[Dict]:
+    def analyze(self, df) -> Optional[Dict]:
         """
         Analyze for trend following opportunities
         
         Args:
-            df: OHLCV DataFrame with at least 200 periods
+            df: OHLCV DataFrame (pandas) or dict with OHLCV data
             
         Returns:
             Signal dict or None
         """
+        if not HAS_PANDAS:
+            logger.warning("Pandas not available, trend following disabled")
+            return None
+        
         if len(df) < 200:
             return None
         
