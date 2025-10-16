@@ -1,6 +1,6 @@
 'use client'
 
-import { Server, Cpu, HardDrive, Wifi } from 'lucide-react'
+import { Server, Cpu, HardDrive, Wifi, Activity } from 'lucide-react'
 
 interface Props {
   data: any
