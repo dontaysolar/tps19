@@ -109,8 +109,16 @@ export default function OrganismHealth({ data }: Props) {
   )
 }
 
-function HealthMetric({ icon, label, value, percentage, color }: any) {
-  const colorClasses = {
+interface HealthMetricProps {
+  icon: React.ReactNode
+  label: string
+  value: string
+  percentage: number
+  color: 'blue' | 'green' | 'purple'
+}
+
+function HealthMetric({ icon, label, value, percentage, color }: HealthMetricProps) {
+  const colorClasses: Record<HealthMetricProps['color'], string> = {
     blue: 'bg-blue-500',
     green: 'bg-green-500',
     purple: 'bg-purple-500',

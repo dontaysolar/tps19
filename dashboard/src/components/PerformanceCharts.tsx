@@ -105,8 +105,14 @@ export default function PerformanceCharts({ data }: Props) {
   )
 }
 
-function MetricBox({ label, value, color }: any) {
-  const colors = {
+interface MetricBoxProps {
+  label: string
+  value: string | number
+  color: 'blue' | 'red' | 'green'
+}
+
+function MetricBox({ label, value, color }: MetricBoxProps) {
+  const colors: Record<MetricBoxProps['color'], string> = {
     blue: 'text-blue-400',
     red: 'text-red-400',
     green: 'text-green-400',

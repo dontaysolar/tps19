@@ -117,8 +117,15 @@ export default function Dashboard() {
   )
 }
 
-function QuickStat({ icon, label, value, color }: any) {
-  const colorClasses = {
+interface QuickStatProps {
+  icon: React.ReactNode
+  label: string
+  value: string | number
+  color: 'blue' | 'green' | 'purple' | 'yellow' | 'cyan'
+}
+
+function QuickStat({ icon, label, value, color }: QuickStatProps) {
+  const colorClasses: Record<QuickStatProps['color'], string> = {
     blue: 'from-blue-500/20 to-blue-600/20 border-blue-500/30',
     green: 'from-green-500/20 to-green-600/20 border-green-500/30',
     purple: 'from-purple-500/20 to-purple-600/20 border-purple-500/30',
