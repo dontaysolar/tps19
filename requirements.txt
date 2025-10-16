@@ -7,12 +7,13 @@ python-dotenv>=1.0.0     # Environment variable management
 # Database
 # sqlite3 is built into Python 3.x
 
-# N8N Integration (optional - runs as separate service)
-# n8n is Node.js based, not a Python package
+# Data Analysis & Trading
+pandas>=2.0.0           # Data manipulation
+numpy>=1.24.0           # Numerical computing
+ccxt>=4.0.0             # Cryptocurrency exchange integration
 
-# Data Analysis (optional, for future enhancements)
-# pandas>=2.0.0
-# numpy>=1.24.0
+# Technical Analysis
+ta>=0.10.0              # Technical indicators library
 
 # Testing
 pytest>=7.4.0
