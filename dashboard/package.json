@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "vercel-deploy": "vercel --prod"
+    "vercel-deploy": "vercel --prod",
+    "postinstall": "prisma generate || true"
   },
   "dependencies": {
     "next": "14.1.0",
