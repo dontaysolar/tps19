@@ -1,0 +1,43 @@
+# Google App Engine Configuration (Alternative to Cloud Run)
+# Use this if you prefer App Engine over Cloud Run
+
+runtime: python311
+entrypoint: python3 tps19_main.py
+
+# Instance configuration
+instance_class: F2
+
+# Automatic scaling configuration
+automatic_scaling:
+  target_cpu_utilization: 0.65
+  target_throughput_utilization: 0.65
+  min_instances: 1
+  max_instances: 1
+  min_pending_latency: 30ms
+  max_pending_latency: automatic
+  max_concurrent_requests: 50
+
+# Environment variables (public ones only, use Secret Manager for sensitive data)
+env_variables:
+  TPS19_ENV: 'production'
+  PYTHON_VERSION: '3.11'
+  LOG_LEVEL: 'INFO'
+
+# VPC access (if using Cloud SQL)
+vpc_access_connector:
+  name: projects/PROJECT_ID/locations/REGION/connectors/CONNECTOR_NAME
+
+# Health checks
+readiness_check:
+  path: "/health"
+  check_interval_sec: 5
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+
+liveness_check:
+  path: "/health"
+  check_interval_sec: 30
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2

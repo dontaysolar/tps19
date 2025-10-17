@@ -182,4 +182,30 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "test":
         system.run_comprehensive_tests()
     else:
+        # Start health check server for Cloud Run
+        import threading
+        from http.server import HTTPServer, BaseHTTPRequestHandler
+        
+        class HealthCheckHandler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                if self.path == '/health':
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/plain')
+                    self.end_headers()
+                    self.wfile.write(b'OK')
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+            
+            def log_message(self, format, *args):
+                pass  # Suppress HTTP logs
+        
+        # Start health check server in background
+        port = int(os.environ.get('PORT', 8080))
+        health_server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+        health_thread = threading.Thread(target=health_server.serve_forever, daemon=True)
+        health_thread.start()
+        print(f"✅ Health check server running on port {port}")
+        
+        # Start main trading system
         system.start_system()

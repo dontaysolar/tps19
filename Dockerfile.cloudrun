@@ -1,0 +1,56 @@
+# TPS19 Trading Bot - Google Cloud Run Optimized Dockerfile
+# Optimized for serverless container deployment
+
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    make \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY requirements_phase1.txt .
+
+# Install Python dependencies
+# Note: TensorFlow is large, install only if needed
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements_phase1.txt
+
+# Copy application code
+COPY . .
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/data/models \
+             /app/data/databases \
+             /app/logs \
+             /app/config && \
+    chmod -R 755 /app && \
+    # Create a non-root user for security
+    useradd -m -u 1000 tps19 && \
+    chown -R tps19:tps19 /app
+
+# Switch to non-root user
+USER tps19
+
+# Expose port for Cloud Run health checks
+EXPOSE 8080
+
+# Health check endpoint (Cloud Run requirement)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# Run the application
+CMD ["python3", "tps19_main.py"]
