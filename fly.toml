@@ -1,0 +1,27 @@
+# Fly.io configuration for TPS19
+
+app = "tps19-trading-bot"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PYTHON_VERSION = "3.11"
+  TPS19_ENV = "production"
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+[[mounts]]
+  source = "tps19_data"
+  destination = "/app/data"
+
+[deploy]
+  strategy = "immediate"

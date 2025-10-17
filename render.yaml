@@ -1,0 +1,19 @@
+services:
+  - type: worker
+    name: tps19-trading-bot
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements_phase1.txt
+    startCommand: python3 tps19_main.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: TPS19_ENV
+        value: production
+    
+databases:
+  - name: tps19-db
+    plan: free
+    databaseName: tps19_production
+    user: tps19_user
