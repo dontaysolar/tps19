@@ -1,0 +1,23 @@
+# TPS19 Phase 1 Requirements - AI/ML & Infrastructure
+
+# Core ML/AI Libraries
+tensorflow>=2.13.0
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+
+# Database
+redis>=5.0.0
+
+# Google Sheets Integration
+google-auth>=2.22.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.1.0
+google-api-python-client>=2.95.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# Existing TPS19 requirements
+# (keep existing dependencies from main requirements.txt)
