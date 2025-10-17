@@ -3,6 +3,10 @@
 
 import sys, os, time, threading, signal
 from datetime import datetime
+
+# Add module paths
+workspace_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(workspace_dir, 'modules'))
 sys.path.insert(0, '/opt/tps19/modules')
 
 # Import all modules
@@ -13,7 +17,20 @@ try:
     print("✅ All unified modules imported successfully")
 except ImportError as e:
     print(f"❌ Module import failed: {e}")
+    print(f"   Workspace: {workspace_dir}")
     sys.exit(1)
+
+# Import Phase 1 AI/ML modules
+try:
+    from ai_models import LSTMPredictor, GANSimulator, SelfLearningPipeline
+    from redis_integration import RedisIntegration
+    from google_sheets_integration import GoogleSheetsIntegration
+    print("✅ Phase 1 AI/ML modules imported successfully")
+    PHASE1_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Phase 1 modules not available: {e}")
+    print("   Install dependencies: pip install -r requirements_phase1.txt")
+    PHASE1_AVAILABLE = False
 
 class TPS19UnifiedSystem:
     """TPS19 Definitive Unified System"""
@@ -26,6 +43,53 @@ class TPS19UnifiedSystem:
             'patch_manager': patch_manager,
             'n8n': n8n_integration
         }
+        
+        # Initialize Phase 1 components if available
+        if PHASE1_AVAILABLE:
+            self._init_phase1_components()
+            
+    def _init_phase1_components(self):
+        """Initialize Phase 1 AI/ML components"""
+        try:
+            # Initialize LSTM predictor
+            self.lstm_predictor = LSTMPredictor()
+            self.system_components['lstm'] = self.lstm_predictor
+            print("✅ LSTM Predictor initialized")
+            
+            # Initialize GAN simulator
+            self.gan_simulator = GANSimulator()
+            self.system_components['gan'] = self.gan_simulator
+            print("✅ GAN Simulator initialized")
+            
+            # Initialize self-learning pipeline
+            self.learning_pipeline = SelfLearningPipeline()
+            self.system_components['learning'] = self.learning_pipeline
+            print("✅ Self-Learning Pipeline initialized")
+            
+            # Initialize Redis (optional)
+            try:
+                self.redis = RedisIntegration()
+                if self.redis.connected:
+                    self.system_components['redis'] = self.redis
+                    print("✅ Redis connected")
+                else:
+                    print("⚠️ Redis not available (optional)")
+            except Exception as e:
+                print(f"⚠️ Redis initialization failed (optional): {e}")
+                
+            # Initialize Google Sheets (optional)
+            try:
+                self.google_sheets = GoogleSheetsIntegration()
+                if self.google_sheets.connected:
+                    self.system_components['google_sheets'] = self.google_sheets
+                    print("✅ Google Sheets connected")
+                else:
+                    print("⚠️ Google Sheets not available (optional)")
+            except Exception as e:
+                print(f"⚠️ Google Sheets initialization failed (optional): {e}")
+                
+        except Exception as e:
+            print(f"⚠️ Phase 1 component initialization error: {e}")
         
     def start_system(self):
         """Start the complete unified system"""
