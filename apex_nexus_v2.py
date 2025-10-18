@@ -143,6 +143,14 @@ class APEXNexusV2:
                             base = best['pair'].split('/')[0]
                             amount = amount_usd / price
                             
+                            # Round to reasonable precision
+                            if base == 'BTC':
+                                amount = round(amount, 6)
+                            elif base in ['ETH', 'SOL']:
+                                amount = round(amount, 4)
+                            else:
+                                amount = round(amount, 2)
+                            
                             # Check minimum
                             markets = self.exchange.load_markets()
                             min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
