@@ -7,6 +7,7 @@ Part of APEX AI Trading System - ATN
 
 import os, sys, json
 from datetime import datetime
+from typing import Dict, List
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'modules'))
 
 try:
