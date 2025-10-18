@@ -145,7 +145,7 @@ class APEXNexusV2:
                             
                             # Check minimum
                             markets = self.exchange.load_markets()
-                            min_amount = markets[best['pair']]['limits']['amount']['min']
+                            min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
                             
                             if amount >= min_amount:
                                 # EXECUTE TRADE
