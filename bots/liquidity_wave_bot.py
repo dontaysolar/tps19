@@ -23,7 +23,7 @@ except ImportError:
 class LiquidityWaveBot:
     """Executes large orders with minimal price impact"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "LiquidityWaveBot"
         self.version = "1.0.0"
         

@@ -36,7 +36,7 @@ class DynamicStopLossBot:
     - Real-time price monitoring
     """
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         """
         Initialize Dynamic Stop-Loss Bot
         

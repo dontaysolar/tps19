@@ -22,7 +22,7 @@ except ImportError:
 class ProfitLockBot:
     """Locks in profits after successful trades"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "ProfitLockBot"
         self.version = "1.0.0"
         

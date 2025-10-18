@@ -19,7 +19,7 @@ except ImportError:
 class GODBot:
     """The Supreme AI - Evolves strategies, predicts market shifts, crisis intervention"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name, self.version = "GOD_BOT", "1.0.0"
         
         if exchange_config:

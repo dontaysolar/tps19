@@ -22,7 +22,7 @@ except ImportError:
 class DailyWithdrawalBot:
     """Automates profit withdrawal and reallocation"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "DailyWithdrawalBot"
         self.version = "1.0.0"
         

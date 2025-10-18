@@ -26,7 +26,7 @@ except ImportError:
 class PatternRecognitionBot:
     """Identifies trading patterns and technical setups"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "PatternRecognitionBot"
         self.version = "1.0.0"
         

@@ -24,7 +24,7 @@ except ImportError:
 class ProfitMagnetBot:
     """Discovers high-profit trading opportunities"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "ProfitMagnetBot"
         self.version = "1.0.0"
         

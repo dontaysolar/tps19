@@ -19,7 +19,7 @@ except ImportError:
 class SeraphimAI:
     """Ultra-fast trade executor"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name, self.version = "Seraphim_AI", "1.0.0"
         
         if exchange_config:

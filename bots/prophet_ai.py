@@ -19,7 +19,7 @@ except ImportError:
 class ProphetAI:
     """Long-term trend forecasting (1d-30d)"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name, self.version = "Prophet_AI", "1.0.0"
         
         if exchange_config:

@@ -22,7 +22,7 @@ except ImportError:
 class FeeOptimizerBot:
     """Calculates and optimizes trading fees and slippage"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "FeeOptimizerBot"
         self.version = "1.0.0"
         

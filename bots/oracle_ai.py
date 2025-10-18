@@ -19,7 +19,7 @@ except ImportError:
 class OracleAI:
     """Short-term price prediction (1m-1h timeframes)"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name, self.version = "Oracle_AI", "1.0.0"
         
         if exchange_config:

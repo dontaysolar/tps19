@@ -22,7 +22,7 @@ except ImportError:
 class YieldFarmerBot:
     """Manages staking and yield farming for idle funds"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "YieldFarmerBot"
         self.version = "1.0.0"
         

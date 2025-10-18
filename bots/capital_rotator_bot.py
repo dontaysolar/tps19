@@ -22,7 +22,7 @@ except ImportError:
 class CapitalRotatorBot:
     """Optimizes capital allocation across trading pairs"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "CapitalRotatorBot"
         self.version = "1.0.0"
         

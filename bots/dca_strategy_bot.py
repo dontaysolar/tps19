@@ -22,7 +22,7 @@ except ImportError:
 class DCAStrategyBot:
     """Implements Dollar Cost Averaging strategy"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "DCAStrategyBot"
         self.version = "1.0.0"
         

@@ -22,7 +22,7 @@ except ImportError:
 class WhaleMonitorBot:
     """Monitors large trades and whale activity"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "WhaleMonitorBot"
         self.version = "1.0.0"
         

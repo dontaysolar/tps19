@@ -22,7 +22,7 @@ except ImportError:
 class CrashShieldBot:
     """Protects capital during market crashes"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "CrashShieldBot"
         self.version = "1.0.0"
         

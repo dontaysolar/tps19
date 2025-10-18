@@ -22,7 +22,7 @@ except ImportError:
 class RugShieldBot:
     """Protects against scams and low-liquidity assets"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name = "RugShieldBot"
         self.version = "1.0.0"
         

@@ -19,7 +19,7 @@ except ImportError:
 class NavigatorAI:
     """Technical pattern finder & setup scanner"""
     
-    def __init__(self, exchange_config: Dict = None):
+    def __init__(self, exchange_config=None):
         self.name, self.version = "Navigator_AI", "1.0.0"
         
         if exchange_config:
