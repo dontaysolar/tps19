@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Test Telegram Bot Connection and Send Test Message"""
 
+import sys
 import requests
 import json
 import os
