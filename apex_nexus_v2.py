@@ -114,14 +114,14 @@ class APEXNexusV2:
                     time.sleep(300)
                     continue
                 
-                # 4. Get signals
+                # 4. Get signals - ONLY BUY signals (we're starting with cash)
                 signals = []
                 for pair in self.config['pairs']:
                     pred = self.oracle.predict_price_movement(pair, horizon_minutes=60)
-                    if pred and pred['confidence'] > 0.7:
+                    if pred and pred['confidence'] > 0.7 and pred['direction'] == 'UP':
                         signals.append({
                             'pair': pair,
-                            'signal': pred['direction'],
+                            'signal': 'BUY',
                             'confidence': pred['confidence']
                         })
                 
