@@ -133,8 +133,45 @@ class APEXNexusV2:
                     # Check with conflict resolver
                     can_trade = self.conflict_resolver.can_open_position(best['pair'])
                     if can_trade['allowed'] and best['confidence'] >= 0.80:
-                        print(f"✅ High confidence signal - Would execute trade here")
-                        self.send_telegram(f"📊 Trade Signal Detected\n\n{best['pair']}: {best['signal']}\nConfidence: {best['confidence']*100:.0f}%\n\nWaiting for optimal entry...")
+                        # EXECUTE REAL TRADE
+                        try:
+                            ticker = self.exchange.fetch_ticker(best['pair'])
+                            price = ticker['last']
+                            amount_usd = self.config['max_position']
+                            
+                            # Calculate amount to trade
+                            base = best['pair'].split('/')[0]
+                            amount = amount_usd / price
+                            
+                            # Check minimum
+                            markets = self.exchange.load_markets()
+                            min_amount = markets[best['pair']]['limits']['amount']['min']
+                            
+                            if amount >= min_amount:
+                                # EXECUTE TRADE
+                                if best['signal'] == 'UP':
+                                    order = self.exchange.create_market_buy_order(best['pair'], amount)
+                                    print(f"✅ BOUGHT {amount:.6f} {base} @ ${price:.2f}")
+                                    self.send_telegram(f"✅ TRADE EXECUTED\n\nBUY {amount:.6f} {base}\nPrice: ${price:.2f}\nValue: ${amount_usd:.2f}\nConfidence: {best['confidence']*100:.0f}%")
+                                else:
+                                    print(f"📊 SELL signal but no position - monitoring")
+                                
+                                # Register with conflict resolver
+                                self.conflict_resolver.open_position(best['pair'], {'entry': price, 'amount': amount})
+                                
+                                # Add to state
+                                self.state['positions'][best['pair']] = {
+                                    'entry_price': price,
+                                    'amount': amount,
+                                    'signal': best['signal'],
+                                    'time': datetime.now().isoformat()
+                                }
+                            else:
+                                print(f"⚠️ Amount {amount:.6f} below minimum {min_amount}")
+                        
+                        except Exception as trade_err:
+                            print(f"❌ Trade error: {trade_err}")
+                            self.send_telegram(f"⚠️ Trade attempt failed: {str(trade_err)[:100]}")
                 
                 # Telegram update every 30 cycles
                 if cycle % 30 == 0:
