@@ -5,14 +5,11 @@ Integrates ALL 51 bots into autonomous trading operation
 ZERO mock data, ZERO tolerance for errors
 """
 import os, sys, time, json, requests
+from dotenv import load_dotenv
 from datetime import datetime
 
-# Load environment
-with open('.env') as f:
-    for line in f:
-        if '=' in line and not line.startswith('#'):
-            k,v = line.strip().split('=',1)
-            os.environ[k] = v
+# Load environment without overriding existing OS env (supports .env if present)
+load_dotenv(override=False)
 
 sys.path.insert(0, 'bots')
 
@@ -32,17 +29,74 @@ from enhanced_notifications import EnhancedNotifications
 
 import ccxt
 
+def get_exchange_credentials():
+    """Fetch exchange API credentials from environment with common fallbacks."""
+    api_key = (
+        os.getenv('EXCHANGE_API_KEY')
+        or os.getenv('CRYPTOCOM_API_KEY')
+        or os.getenv('CDC_API_KEY')
+    )
+    api_secret = (
+        os.getenv('EXCHANGE_API_SECRET')
+        or os.getenv('CRYPTOCOM_API_SECRET')
+        or os.getenv('CDC_API_SECRET')
+    )
+    return api_key, api_secret
+
+def perform_auth_check_standalone() -> int:
+    """Run a quick authenticated check against Crypto.com and exit with status.
+
+    Returns 0 on success, non-zero on failure.
+    """
+    try:
+        api_key, api_secret = get_exchange_credentials()
+
+        if not api_key or not api_secret:
+            print("❌ Missing EXCHANGE_API_KEY and/or EXCHANGE_API_SECRET in environment")
+            return 2
+
+        exchange = ccxt.cryptocom({
+            'apiKey': api_key,
+            'secret': api_secret,
+            'enableRateLimit': True,
+        })
+        exchange.timeout = 10000  # 10s safety timeout
+
+        # Private endpoint requires valid auth; will raise on failure
+        _ = exchange.fetch_balance()
+        print("✅ Crypto.com authentication OK - balances retrieved")
+        return 0
+    except Exception as e:
+        print(f"❌ Crypto.com authentication failed: {e}")
+        return 1
+
 class APEXNexusV2:
     def __init__(self):
         print("🚀 APEX NEXUS V2.0 - PRODUCTION SYSTEM")
         print("="*80)
         
         # Initialize exchange
+        api_key, api_secret = get_exchange_credentials()
+        if not api_key or not api_secret:
+            raise RuntimeError('Missing Crypto.com API credentials in environment')
+
         self.exchange = ccxt.cryptocom({
-            'apiKey': os.environ['EXCHANGE_API_KEY'],
-            'secret': os.environ['EXCHANGE_API_SECRET'],
+            'apiKey': api_key,
+            'secret': api_secret,
             'enableRateLimit': True
         })
+        self.exchange.timeout = 10000  # 10s safety timeout
+
+        # Authenticated health check with Telegram reporting
+        try:
+            _ = self.exchange.fetch_balance()
+            print("✅ Exchange authentication verified")
+        except Exception as auth_err:
+            print(f"❌ Exchange authentication error: {auth_err}")
+            try:
+                self.send_telegram(f"⚠️ Crypto.com auth error: {str(auth_err)[:120]}")
+            except Exception:
+                pass
         
         # Initialize all bots
         print("Loading God-Level AI...")
@@ -205,5 +259,10 @@ class APEXNexusV2:
                 time.sleep(60)
 
 if __name__ == '__main__':
+    # Allow a lightweight, fast auth check without starting the full system
+    if os.getenv('APEX_AUTH_CHECK_ONLY') == '1':
+        rc = perform_auth_check_standalone()
+        sys.exit(rc)
+
     nexus = APEXNexusV2()
     nexus.run()

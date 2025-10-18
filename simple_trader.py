@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 import ccxt, os, time, requests
+from dotenv import load_dotenv
 from datetime import datetime
 
-# Load env
-with open('.env') as f:
-    for line in f:
-        if '=' in line and not line.startswith('#'):
-            k,v = line.strip().split('=',1)
-            os.environ[k] = v
+# Load env from .env without overriding already-set variables
+load_dotenv(override=False)
 
 exchange = ccxt.cryptocom({
     'apiKey': os.environ['EXCHANGE_API_KEY'],
