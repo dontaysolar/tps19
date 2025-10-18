@@ -102,3 +102,8 @@ Market: RANGING
 ================================================================================
 CYCLE #16 - 12:21:37
 ================================================================================
+❌ GOD BOT market analysis error: cryptocom GET https://api.crypto.com/exchange/v1/public/get-tickers?instrument_name=ETH_USDT
+Market: UNKNOWN
+❌ Crash detection error: cryptocom GET https://api.crypto.com/exchange/v1/public/get-candlestick?instrument_name=BTC_USDT&timeframe=5m&count=12&end_ts=1760790107694590
+❌ Oracle AI prediction error: cryptocom GET https://api.crypto.com/exchange/v1/public/get-candlestick?instrument_name=ETH_USDT&timeframe=1h&count=100&end_ts=1760790117711697
+✅ Cycle complete
