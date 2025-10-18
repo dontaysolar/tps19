@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TPS19 Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #0b1220; color: #e6e8ec; }
+    header { padding: 20px; border-bottom: 1px solid #1f2b46; display: flex; align-items: center; justify-content: space-between; }
+    .badge { background: #1f2b46; padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card { background: #0f172a; border: 1px solid #1f2b46; border-radius: 12px; padding: 16px; }
+    .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; }
+    .col-12 { grid-column: span 12; }
+    h2 { margin: 0 0 12px; font-size: 16px; color: #9fb3c8; font-weight: 600; }
+    .kpi { font-size: 28px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid #1f2b46; font-size: 14px; }
+    th { text-align: left; color: #9fb3c8; }
+    .ok { color: #22c55e; }
+    .warn { color: #eab308; }
+    .err { color: #ef4444; }
+    .small { font-size: 12px; color: #9fb3c8; }
+    footer { text-align: center; padding: 24px; color: #9fb3c8; }
+    button { background: #1f2b46; color: #e6e8ec; border: 1px solid #2a3b63; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+    button:hover { background: #2a3b63; }
+    .actions { display: flex; gap: 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <strong>TPS19</strong>
+      <span class="badge">Dashboard</span>
+    </div>
+    <div class="actions">
+      <button id="refresh">Refresh</button>
+      <button id="health">Health</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card col-4">
+        <h2>Status</h2>
+        <div id="status" class="kpi">—</div>
+        <div class="small" id="lastUpdated">—</div>
+      </div>
+      <div class="card col-4">
+        <h2>Balance</h2>
+        <div class="kpi" id="balance">—</div>
+      </div>
+      <div class="card col-4">
+        <h2>Win Rate</h2>
+        <div class="kpi" id="winrate">—</div>
+      </div>
+
+      <div class="card col-6">
+        <h2>Recent Trades</h2>
+        <table id="trades">
+          <thead><tr><th>Time</th><th>Symbol</th><th>Side</th><th>Profit</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card col-6">
+        <h2>Sentiment</h2>
+        <table id="sentiment">
+          <thead><tr><th>Asset</th><th>Score</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card col-12">
+        <h2>Positions</h2>
+        <table id="positions">
+          <thead><tr><th>Symbol</th><th>Side</th><th>Amount</th><th>Entry</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>Built for Vercel • Calls /api endpoints</footer>
+
+  <script>
+    async function fetchJSON(path) {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    async function loadStatus() {
+      try {
+        const s = await fetchJSON('/api/status');
+        document.getElementById('status').textContent = s.trading_enabled ? 'Trading Enabled' : 'Trading Disabled';
+        document.getElementById('balance').textContent = `$${(s.balance||0).toFixed(2)}`;
+        document.getElementById('winrate').textContent = `${(s.win_rate||0).toFixed(1)}%`;
+        document.getElementById('lastUpdated').textContent = `Updated: ${new Date().toLocaleString()}`;
+      } catch (e) {
+        document.getElementById('status').textContent = 'Error';
+      }
+    }
+
+    async function loadTrades() {
+      try {
+        const t = await fetchJSON('/api/trades?timeframe=24h');
+        const tbody = document.querySelector('#trades tbody');
+        tbody.innerHTML = '';
+        (t.trades||[]).slice(0, 10).forEach(tr => {
+          const trEl = document.createElement('tr');
+          trEl.innerHTML = `<td>${tr.timestamp||'-'}</td><td>${tr.symbol||'-'}</td><td>${tr.side||'-'}</td><td>${(tr.profit||0).toFixed(2)}</td>`;
+          tbody.appendChild(trEl);
+        });
+      } catch (e) {}
+    }
+
+    async function loadSentiment() {
+      try {
+        const s = await fetchJSON('/api/sentiment');
+        const tbody = document.querySelector('#sentiment tbody');
+        tbody.innerHTML = '';
+        Object.entries(s).forEach(([k,v]) => {
+          if (k === 'last_updated') return;
+          const trEl = document.createElement('tr');
+          trEl.innerHTML = `<td>${k}</td><td>${(v||0).toFixed? v.toFixed(2) : v}</td>`;
+          tbody.appendChild(trEl);
+        });
+      } catch (e) {}
+    }
+
+    async function loadPositions() {
+      try {
+        const p = await fetchJSON('/api/positions');
+        const tbody = document.querySelector('#positions tbody');
+        tbody.innerHTML = '';
+        (p.positions||[]).forEach(pos => {
+          const trEl = document.createElement('tr');
+          trEl.innerHTML = `<td>${pos.symbol||'-'}</td><td>${pos.side||'-'}</td><td>${pos.amount||'-'}</td><td>${pos.entry||'-'}</td><td>${pos.status||'-'}</td>`;
+          tbody.appendChild(trEl);
+        });
+      } catch (e) {}
+    }
+
+    async function refreshAll() {
+      await Promise.all([loadStatus(), loadTrades(), loadSentiment(), loadPositions()]);
+    }
+
+    document.getElementById('refresh').addEventListener('click', refreshAll);
+    document.getElementById('health').addEventListener('click', async () => {
+      try {
+        const h = await fetchJSON('/api/health');
+        alert(`Health: ${h.status}`);
+      } catch(e) { alert('Health check error'); }
+    });
+
+    refreshAll();
+    setInterval(refreshAll, 15000);
+  </script>
+</body>
+</html>
