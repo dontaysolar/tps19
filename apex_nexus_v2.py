@@ -106,10 +106,11 @@ class APEXNexusV2:
                     time.sleep(300)
                     continue
                 
-                # 3. Crash shield
-                crash_status = self.crash_shield.check_crash_conditions(self.config['pairs'])
+                # 3. Crash shield - check BTC as market indicator
+                crash_status = self.crash_shield.check_crash('BTC/USDT')
                 if crash_status.get('crash_detected'):
-                    print("🛡️ Crash detected - Pausing")
+                    print(f"🛡️ Crash: {crash_status['drop_pct']}% - Pausing")
+                    self.send_telegram(f"🛡️ Market crash: {crash_status['drop_pct']:.1f}%\nTrading paused")
                     time.sleep(300)
                     continue
                 
