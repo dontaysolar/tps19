@@ -1,0 +1,52 @@
+=== helios_28 START 2025-10-18T03:04:01.397617 ===
+CMD: /usr/bin/python3 tps19_main.py test
+
+2025-10-18 03:04:02.143873: I external/local_xla/xla/tsl/cuda/cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+2025-10-18 03:04:02.144384: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-10-18 03:04:02.217058: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI AVX512_BF16 AVX512_FP16 AVX_VNNI AMX_TILE AMX_INT8 AMX_BF16 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-10-18 03:04:03.781626: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-10-18 03:04:03.782239: I external/local_xla/xla/tsl/cuda/cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+✅ SIUL database initialized
+✅ Patch Manager database initialized
+✅ All unified modules imported successfully
+✅ Phase 1 AI/ML modules imported successfully
+✅ LSTM Predictor initialized
+✅ GAN Simulator initialized
+✅ Self-Learning Pipeline initialized
+❌ Failed to connect to Redis: Error 111 connecting to localhost:6379. Connection refused.
+⚠️ Redis not available (optional)
+⚠️ Credentials file not found: /opt/tps19/config/google_credentials.json
+⚠️ Google Sheets not available (optional)
+🧪 Running Comprehensive System Tests...
+============================================================
+🔍 Testing SIUL...
+✅ SIUL test passed
+🔍 Testing Patch + Rollback System...
+🧪 Testing Patch + Rollback System...
+1️⃣ Creating initial backup...
+✅ System backup created: test_initial_1760756644
+2️⃣ Applying test patch...
+✅ System backup created: pre_patch_test_patch_001_1760756644
+✅ Patch test_patch_001_1760756644 applied successfully
+3️⃣ Verifying patch application...
+4️⃣ Testing rollback...
+✅ Patch test_patch_001_1760756644 rolled back successfully
+5️⃣ Verifying rollback...
+✅ Patch + Rollback system test PASSED
+🔍 Testing N8N Integration...
+🧪 Testing N8N integration...
+❌ N8N trade signal error: HTTPConnectionPool(host='localhost', port=5678): Max retries exceeded with url: /webhook/trade-signal (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fbc38ecc830>: Failed to establish a new connection: [Errno 111] Connection refused'))
+✅ N8N integration test completed (may show connection errors if N8N not running)
+
+============================================================
+📊 COMPREHENSIVE TEST RESULTS
+============================================================
+✅ PASSED SIUL
+✅ PASSED PATCH_MANAGER
+✅ PASSED N8N
+
+🎯 OVERALL: 3/3 tests passed
+🎉 ALL TESTS PASSED! SYSTEM FULLY OPERATIONAL!
+
+=== EXIT 0 ===

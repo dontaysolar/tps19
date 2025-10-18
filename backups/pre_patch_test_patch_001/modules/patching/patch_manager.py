@@ -8,11 +8,20 @@ from typing import Dict, List, Any, Optional
 class TPS19PatchManager:
     """Complete Patching and Rollback System"""
     
-    def __init__(self, db_path='/opt/tps19/data/patch_manager.db'):
+    def __init__(self, db_path=None):
+        # Use dynamic path based on current working directory or script location
+        if db_path is None:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            db_path = os.path.join(base_dir, 'data', 'patch_manager.db')
+            self.patches_dir = os.path.join(base_dir, 'patches')
+            self.backups_dir = os.path.join(base_dir, 'backups')
+            self.system_dir = base_dir
+        else:
+            self.patches_dir = os.path.join(os.path.dirname(db_path), '..', 'patches')
+            self.backups_dir = os.path.join(os.path.dirname(db_path), '..', 'backups')
+            self.system_dir = os.path.dirname(os.path.dirname(db_path))
+        
         self.db_path = db_path
-        self.patches_dir = '/opt/tps19/patches'
-        self.backups_dir = '/opt/tps19/backups'
-        self.system_dir = '/opt/tps19'
         self.exchange = 'crypto.com'
         
         self._init_database()
@@ -23,6 +32,8 @@ class TPS19PatchManager:
         try:
             os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
             conn = sqlite3.connect(self.db_path)
+            # Reduce SQLITE_BUSY errors when tests re-run quickly
+            conn.execute('PRAGMA busy_timeout=5000')
             cursor = conn.cursor()
             
             # Patches table
@@ -305,6 +316,7 @@ class TPS19PatchManager:
         """Store patch information"""
         try:
             conn = sqlite3.connect(self.db_path)
+            conn.execute('PRAGMA busy_timeout=5000')
             cursor = conn.cursor()
             
             cursor.execute("""INSERT OR REPLACE INTO patches 
@@ -324,6 +336,7 @@ class TPS19PatchManager:
         """Store rollback information"""
         try:
             conn = sqlite3.connect(self.db_path)
+            conn.execute('PRAGMA busy_timeout=5000')
             cursor = conn.cursor()
             
             cursor.execute("""INSERT INTO rollback_history 
@@ -341,6 +354,7 @@ class TPS19PatchManager:
         """Store system version information"""
         try:
             conn = sqlite3.connect(self.db_path)
+            conn.execute('PRAGMA busy_timeout=5000')
             cursor = conn.cursor()
             
             # Mark all versions as not current
@@ -362,6 +376,7 @@ class TPS19PatchManager:
         """Get patch system status"""
         try:
             conn = sqlite3.connect(self.db_path)
+            conn.execute('PRAGMA busy_timeout=5000')
             cursor = conn.cursor()
             
             # Total patches
@@ -407,7 +422,8 @@ class TPS19PatchManager:
                 return False
                 
             # Step 2: Create test file
-            test_file = '/opt/tps19/test_patch_file.txt'
+            # Use workspace/system directory to avoid permission issues
+            test_file = os.path.join(self.system_dir, 'test_patch_file.txt')
             with open(test_file, 'w') as f:
                 f.write("Original content")
                 

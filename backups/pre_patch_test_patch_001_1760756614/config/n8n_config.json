@@ -1,0 +1,16 @@
+{
+  "n8n_url": "http://localhost:5678",
+  "webhook_endpoints": {
+    "trade_signal": "/webhook/trade-signal",
+    "market_alert": "/webhook/market-alert",
+    "system_status": "/webhook/system-status",
+    "arbitrage_opportunity": "/webhook/arbitrage",
+    "risk_alert": "/webhook/risk-alert"
+  },
+  "workflows": {
+    "crypto_com_arbitrage": "crypto-com-arbitrage-workflow",
+    "risk_management": "risk-management-workflow",
+    "profit_optimization": "profit-optimization-workflow"
+  },
+  "exchange": "crypto.com"
+}
