@@ -156,13 +156,23 @@ class APEXNexusV2:
                             min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
                             
                             if amount >= min_amount:
-                                # EXECUTE TRADE
-                                if best['signal'] == 'UP':
+                                # EXECUTE TRADE - TRY BOTH BUY AND SELL
+                                if best['signal'] in ['UP', 'BUY']:
+                                    print(f"🔥 EXECUTING BUY ORDER...")
                                     order = self.exchange.create_market_buy_order(best['pair'], amount)
                                     print(f"✅ BOUGHT {amount:.6f} {base} @ ${price:.2f}")
-                                    self.send_telegram(f"✅ TRADE EXECUTED\n\nBUY {amount:.6f} {base}\nPrice: ${price:.2f}\nValue: ${amount_usd:.2f}\nConfidence: {best['confidence']*100:.0f}%")
+                                    print(f"   Order ID: {order.get('id', 'N/A')}")
+                                    self.send_telegram(f"✅ TRADE EXECUTED\n\nBUY {amount:.6f} {base}\nPrice: ${price:.2f}\nValue: ${amount_usd:.2f}\nConfidence: {best['confidence']*100:.0f}%\nOrder: {order.get('id', 'N/A')}")
+                                elif best['signal'] in ['DOWN', 'SELL'] and best['pair'] in self.state['positions']:
+                                    # Only sell if we have a position
+                                    pos = self.state['positions'][best['pair']]
+                                    print(f"🔥 EXECUTING SELL ORDER...")
+                                    order = self.exchange.create_market_sell_order(best['pair'], pos['amount'])
+                                    print(f"✅ SOLD {pos['amount']:.6f} {base} @ ${price:.2f}")
+                                    self.send_telegram(f"✅ SOLD\n\n{pos['amount']:.6f} {base}\nPrice: ${price:.2f}\nEntry: ${pos['entry_price']:.2f}\nP&L: ${(price - pos['entry_price']) * pos['amount']:.2f}")
+                                    del self.state['positions'][best['pair']]
                                 else:
-                                    print(f"📊 SELL signal but no position - monitoring")
+                                    print(f"📊 {best['signal']} signal - no position to sell")
                                 
                                 # Register with conflict resolver
                                 self.conflict_resolver.open_position(best['pair'], {'entry': price, 'amount': amount})
