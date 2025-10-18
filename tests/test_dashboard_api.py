@@ -56,3 +56,9 @@ class TestAPI:
         assert r.status_code == 200
         data = r.get_json()
         assert 'status' in data and 'trades' in data and 'performance' in data and 'positions' in data and 'sentiment' in data
+
+    def test_openapi(self, client: FlaskClient):
+        r = client.get('/api/openapi.json')
+        assert r.status_code == 200
+        data = r.get_json()
+        assert data.get('openapi') and '/api/health' in data.get('paths', {})

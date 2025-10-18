@@ -70,6 +70,24 @@ def overview():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/openapi.json', methods=['GET'])
+def openapi_spec():
+    """Minimal OpenAPI spec for dashboard API"""
+    spec = {
+        "openapi": "3.0.0",
+        "info": {"title": "TPS19 Dashboard API", "version": "1.0.0"},
+        "paths": {
+            "/api/health": {"get": {"responses": {"200": {"description": "OK"}}}},
+            "/api/status": {"get": {"responses": {"200": {"description": "OK"}}}},
+            "/api/trades": {"get": {"parameters": [{"in": "query", "name": "timeframe", "schema": {"type": "string"}}], "responses": {"200": {"description": "OK"}}}},
+            "/api/performance": {"get": {"responses": {"200": {"description": "OK"}}}},
+            "/api/positions": {"get": {"responses": {"200": {"description": "OK"}}}},
+            "/api/sentiment": {"get": {"responses": {"200": {"description": "OK"}}}},
+            "/api/overview": {"get": {"responses": {"200": {"description": "OK"}}}}
+        }
+    }
+    return jsonify(spec)
+
 @app.route('/api/status', methods=['GET'])
 def get_status():
     """Get bot status"""
@@ -202,9 +220,14 @@ def calculate_sharpe(profits):
     if not profits:
         return 0
     
-    import numpy as np
-    returns = np.array(profits)
-    return (np.mean(returns) / np.std(returns)) if np.std(returns) > 0 else 0
+    # Lightweight Sharpe approximation without numpy
+    n = len(profits)
+    if n == 0:
+        return 0
+    mean = sum(profits) / n
+    variance = sum((p - mean) ** 2 for p in profits) / n
+    std = variance ** 0.5
+    return (mean / std) if std > 0 else 0
 
 if __name__ == '__main__':
     print("🚀 Starting Dashboard API...")
