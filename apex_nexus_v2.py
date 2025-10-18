@@ -114,14 +114,16 @@ class APEXNexusV2:
                     time.sleep(300)
                     continue
                 
-                # 4. Get signals - ONLY BUY signals (we're starting with cash)
+                # 4. Get signals - ACCEPT ALL HIGH CONFIDENCE SIGNALS
                 signals = []
                 for pair in self.config['pairs']:
                     pred = self.oracle.predict_price_movement(pair, horizon_minutes=60)
-                    if pred and pred['confidence'] > 0.7 and pred['direction'] == 'UP':
+                    print(f"   {pair}: {pred['direction']} ({pred['confidence']*100:.0f}%)")
+                    # Accept ANY direction with >60% confidence
+                    if pred and pred['confidence'] > 0.60:
                         signals.append({
                             'pair': pair,
-                            'signal': 'BUY',
+                            'signal': pred['direction'],
                             'confidence': pred['confidence']
                         })
                 
@@ -130,9 +132,9 @@ class APEXNexusV2:
                     best = max(signals, key=lambda x: x['confidence'])
                     print(f"📊 Best signal: {best['pair']} {best['signal']} ({best['confidence']*100:.0f}%)")
                     
-                    # Check with conflict resolver
+                    # Check with conflict resolver - LOWERED THRESHOLD
                     can_trade = self.conflict_resolver.can_open_position(best['pair'])
-                    if can_trade['allowed'] and best['confidence'] >= 0.80:
+                    if can_trade['allowed'] and best['confidence'] >= 0.65:
                         # EXECUTE REAL TRADE
                         try:
                             ticker = self.exchange.fetch_ticker(best['pair'])
