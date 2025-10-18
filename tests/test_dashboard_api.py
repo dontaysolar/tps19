@@ -50,3 +50,9 @@ class TestAPI:
     def test_sentiment(self, client: FlaskClient):
         r = client.get('/api/sentiment')
         assert r.status_code == 200
+
+    def test_overview(self, client: FlaskClient):
+        r = client.get('/api/overview')
+        assert r.status_code == 200
+        data = r.get_json()
+        assert 'status' in data and 'trades' in data and 'performance' in data and 'positions' in data and 'sentiment' in data

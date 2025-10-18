@@ -49,6 +49,27 @@ def health_check():
         'version': '1.0.0'
     })
 
+@app.route('/api/overview', methods=['GET'])
+def overview():
+    """Aggregate key dashboard data in one call"""
+    status = load_status()
+    try:
+        from datetime import datetime, timedelta
+        timeframe = request.args.get('timeframe', '24h')
+        trades_resp = get_trades()
+        perf_resp = get_performance()
+        pos_resp = get_positions()
+        sent_resp = get_sentiment()
+        return jsonify({
+            'status': status,
+            'trades': trades_resp.get_json(),
+            'performance': perf_resp.get_json(),
+            'positions': pos_resp.get_json(),
+            'sentiment': sent_resp.get_json(),
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/status', methods=['GET'])
 def get_status():
     """Get bot status"""
