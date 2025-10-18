@@ -88,7 +88,14 @@ class DailyWithdrawalBot:
             return {}
     
     def execute_withdrawal(self) -> Dict:
-        """Execute profit withdrawal and reallocation"""
+        """DISABLED - Only calculates profit, does not withdraw"""
+        if self.WITHDRAWAL_DISABLED:
+            return {
+                'executed': False,
+                'reason': 'SECURITY: Withdrawals disabled. Bot tracks profit only.',
+                'withdrawal_disabled': True
+            }
+        
         profit_data = self.calculate_profit()
         
         if not profit_data:
