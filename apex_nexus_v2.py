@@ -107,7 +107,8 @@ class APEXNexusV2:
                     continue
                 
                 # 3. Crash shield
-                if self.crash_shield.check_market_status().get('crash_detected'):
+                crash_status = self.crash_shield.check_crash_conditions(self.config['pairs'])
+                if crash_status.get('crash_detected'):
                     print("🛡️ Crash detected - Pausing")
                     time.sleep(300)
                     continue
