@@ -28,7 +28,7 @@ class MultiCoinTrader:
         load_dotenv()
         
         # Initialize exchange
-        self.exchange = ccxt.crypto_com({
+        self.exchange = ccxt.cryptocom({
             'apiKey': os.getenv('EXCHANGE_API_KEY'),
             'secret': os.getenv('EXCHANGE_API_SECRET'),
             'enableRateLimit': True
