@@ -66,8 +66,8 @@ class APEXNexusV2:
         self.notifications = EnhancedNotifications()
         
         self.config = {
-            'pairs': ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'ADA/USDT'],
-            'max_position': 0.50,
+            'pairs': ['ETH/USDT', 'SOL/USDT', 'ADA/USDT', 'BTC/USDT'],  # ETH first (lower min)
+            'max_position': 1.50,  # Increased to $1.50 to meet BTC minimum
             'stop_loss': 0.02,
             'take_profit': 0.05
         }
