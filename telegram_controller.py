@@ -126,6 +126,12 @@ class TelegramController:
             self.cmd_stats()
         elif text in ['reset', 'reset stats']:
             self.cmd_reset_stats()
+        elif text in ['mode paper', 'mode live']:
+            self.cmd_mode(text)
+        elif text in ['/positions', 'positions']:
+            self.cmd_positions()
+        elif text in ['/orders', 'orders']:
+            self.cmd_orders()
         else:
             self.send_message(
                 "❓ Unknown command\n\n"
@@ -188,6 +194,76 @@ AI Models: {ai_emoji} {'ON' if self.status['ai_enabled'] else 'OFF'}
 _Last updated: {self.status.get('last_update', 'Never')}_
 """
         self.send_message(text)
+
+        # Show open positions from trade store if available
+        try:
+            from modules.trade_store import TradeStore
+            store = TradeStore('data/trading.db')
+            positions = store.list_positions()
+            if positions:
+                lines = ["\n📌 *Open Positions*:"]
+                for p in positions:
+                    lines.append(f"• {p['symbol']} {p['side']} {p['amount']:.6f} @ ${p['entry_price']:.2f}")
+                self.send_message("\n".join(lines))
+        except Exception:
+            pass
+
+        # Last order summary
+        try:
+            from modules.trade_store import TradeStore
+            store = TradeStore('data/trading.db')
+            orders = store.list_orders(limit=1)
+            if orders:
+                o = orders[0]
+                self.send_message(
+                    f"🧾 *Last Order*\n{o['created_at']} {o['symbol']} {o['side']} {o['amount']:.6f} @ ${o['price']:.2f}"
+                )
+        except Exception:
+            pass
+
+    def cmd_mode(self, text):
+        """Switch run mode between PAPER and LIVE (affects next start)."""
+        mode = 'paper' if 'paper' in text else 'live'
+        # Persist a hint file for external runner to pick up
+        try:
+            os.makedirs('data', exist_ok=True)
+            with open('data/apex_mode.txt', 'w') as f:
+                f.write(mode.upper())
+        except Exception:
+            pass
+        self.send_message(f"🛠️ Mode set to *{mode.upper()}*. Will apply on next start.")
+
+    def cmd_positions(self):
+        """List open positions from trade store."""
+        try:
+            from modules.trade_store import TradeStore
+            store = TradeStore('data/trading.db')
+            positions = store.list_positions()
+            if not positions:
+                self.send_message("No open positions.")
+                return
+            lines = ["📌 *Open Positions*:"]
+            for p in positions:
+                lines.append(f"• {p['symbol']} {p['side']} {p['amount']:.6f} @ ${p['entry_price']:.2f}")
+            self.send_message("\n".join(lines))
+        except Exception as e:
+            self.send_message(f"❌ Error reading positions: {e}")
+
+    def cmd_orders(self):
+        """List recent orders from trade store."""
+        try:
+            from modules.trade_store import TradeStore
+            store = TradeStore('data/trading.db')
+            orders = store.list_orders(limit=10)
+            if not orders:
+                self.send_message("No recent orders.")
+                return
+            lines = ["🧾 *Recent Orders*:"]
+            for o in orders:
+                lines.append(f"• {o['created_at']} {o['symbol']} {o['side']} {o['amount']:.6f} @ ${o['price']:.2f}")
+            self.send_message("\n".join(lines))
+        except Exception as e:
+            self.send_message(f"❌ Error reading orders: {e}")
     
     def cmd_balance(self):
         """Show balance info"""

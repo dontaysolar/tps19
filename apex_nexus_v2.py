@@ -5,14 +5,11 @@ Integrates ALL 51 bots into autonomous trading operation
 ZERO mock data, ZERO tolerance for errors
 """
 import os, sys, time, json, requests
+from dotenv import load_dotenv
 from datetime import datetime
 
-# Load environment
-with open('.env') as f:
-    for line in f:
-        if '=' in line and not line.startswith('#'):
-            k,v = line.strip().split('=',1)
-            os.environ[k] = v
+# Load environment without overriding existing OS env (supports .env if present)
+load_dotenv(override=False)
 
 sys.path.insert(0, 'bots')
 
@@ -31,18 +28,85 @@ from sentiment_analyzer import SentimentAnalyzer
 from enhanced_notifications import EnhancedNotifications
 
 import ccxt
+from modules.trading_engine import PaperExchangeAdapter
+from modules.trade_store import TradeStore
+
+def get_exchange_credentials():
+    """Fetch exchange API credentials from environment with common fallbacks."""
+    api_key = (
+        os.getenv('EXCHANGE_API_KEY')
+        or os.getenv('CRYPTOCOM_API_KEY')
+        or os.getenv('CDC_API_KEY')
+    )
+    api_secret = (
+        os.getenv('EXCHANGE_API_SECRET')
+        or os.getenv('CRYPTOCOM_API_SECRET')
+        or os.getenv('CDC_API_SECRET')
+    )
+    return api_key, api_secret
+
+def perform_auth_check_standalone() -> int:
+    """Run a quick authenticated check against Crypto.com and exit with status.
+
+    Returns 0 on success, non-zero on failure.
+    """
+    try:
+        api_key, api_secret = get_exchange_credentials()
+
+        if not api_key or not api_secret:
+            print("❌ Missing EXCHANGE_API_KEY and/or EXCHANGE_API_SECRET in environment")
+            return 2
+
+        exchange = ccxt.cryptocom({
+            'apiKey': api_key,
+            'secret': api_secret,
+            'enableRateLimit': True,
+        })
+        exchange.timeout = 10000  # 10s safety timeout
+
+        # Private endpoint requires valid auth; will raise on failure
+        _ = exchange.fetch_balance()
+        print("✅ Crypto.com authentication OK - balances retrieved")
+        return 0
+    except Exception as e:
+        print(f"❌ Crypto.com authentication failed: {e}")
+        return 1
 
 class APEXNexusV2:
     def __init__(self):
         print("🚀 APEX NEXUS V2.0 - PRODUCTION SYSTEM")
         print("="*80)
         
-        # Initialize exchange
-        self.exchange = ccxt.cryptocom({
-            'apiKey': os.environ['EXCHANGE_API_KEY'],
-            'secret': os.environ['EXCHANGE_API_SECRET'],
-            'enableRateLimit': True
-        })
+        # Initialize exchange with PAPER fallback on auth failure
+        api_key, api_secret = get_exchange_credentials()
+        use_paper = os.getenv('APEX_MODE', 'auto').lower() == 'paper'
+        if not api_key or not api_secret:
+            use_paper = True
+        else:
+            try:
+                self.exchange = ccxt.cryptocom({
+                    'apiKey': api_key,
+                    'secret': api_secret,
+                    'enableRateLimit': True
+                })
+                self.exchange.timeout = 10000  # 10s safety timeout
+                _ = self.exchange.fetch_balance()
+                print("✅ Exchange authentication verified")
+            except Exception as auth_err:
+                print(f"❌ Exchange authentication error: {auth_err}")
+                use_paper = True
+                try:
+                    self.send_telegram("⚠️ Crypto.com auth error. Falling back to PAPER mode.")
+                except Exception:
+                    pass
+
+        if use_paper:
+            public = ccxt.cryptocom({'enableRateLimit': True})
+            self.exchange = PaperExchangeAdapter(public_exchange=public, base_currency='USDT', initial_balances={'USDT': 1000.0})
+            try:
+                self.exchange.load_markets()
+            except Exception:
+                pass
         
         # Initialize all bots
         print("Loading God-Level AI...")
@@ -72,7 +136,14 @@ class APEXNexusV2:
             'take_profit': 0.05
         }
         
-        self.state = {'trading_enabled': True, 'positions': {}, 'cycle': 0}
+        self.state = {
+            'trading_enabled': True,
+            'positions': {},
+            'cycle': 0,
+            'mode': 'PAPER' if use_paper else 'LIVE',
+            'forced': {'buy_done': False, 'sell_done': {}}
+        }
+        self.store = TradeStore('data/trading.db')
         
         print(f"✅ ALL SYSTEMS INITIALIZED\n")
         self.send_telegram("✅ APEX NEXUS V2.0 ONLINE\n\nAll 51 bots loaded\nStarting autonomous trading...")
@@ -85,6 +156,8 @@ class APEXNexusV2:
     
     def run(self):
         print("Starting autonomous trading cycle...\n")
+        max_cycles_env = os.getenv('APEX_MAX_CYCLES')
+        max_cycles = int(max_cycles_env) if max_cycles_env and max_cycles_env.isdigit() else None
         
         while True:
             self.state['cycle'] += 1
@@ -134,15 +207,30 @@ class APEXNexusV2:
                     
                     # Check with conflict resolver - LOWERED THRESHOLD
                     can_trade = self.conflict_resolver.can_open_position(best['pair'])
-                    if can_trade['allowed'] and best['confidence'] >= 0.65:
+                    # Force one BUY in PAPER mode if env requests and no positions yet
+                    force_paper_env = os.getenv('APEX_FORCE_PAPER_TRADE') == '1' and self.state.get('mode') == 'PAPER'
+                    force_paper = force_paper_env and not self.state['forced']['buy_done']
+                    # Prioritize closing existing positions if SELL signal appears
+                    have_pos = best['pair'] in self.state['positions']
+                    force_sell_env = os.getenv('APEX_FORCE_PAPER_SELL')=='1' and self.state.get('mode')=='PAPER'
+                    forced_this_pair = self.state['forced']['sell_done'].get(best['pair'])
+                    should_sell = (best['signal'] in ['DOWN', 'SELL'] and have_pos) or (force_sell_env and have_pos and not forced_this_pair)
+                    should_buy = (can_trade['allowed'] and best['confidence'] >= 0.65) or (force_paper and not have_pos)
+
+                    if should_sell or should_buy:
                         # EXECUTE REAL TRADE
                         try:
-                            ticker = self.exchange.fetch_ticker(best['pair'])
+                            pair = best['pair']
+                            if force_paper and best['signal'] not in ['UP', 'BUY']:
+                                # choose ETH/USDT to minimize min-size issues
+                                pair = 'ETH/USDT'
+                                best = {**best, 'pair': pair, 'signal': 'BUY', 'confidence': max(best['confidence'], 0.80)}
+                            ticker = self.exchange.fetch_ticker(pair)
                             price = ticker['last']
                             amount_usd = self.config['max_position']
                             
                             # Calculate amount to trade
-                            base = best['pair'].split('/')[0]
+                            base = pair.split('/')[0]
                             amount = amount_usd / price
                             
                             # Round to reasonable precision
@@ -154,38 +242,67 @@ class APEXNexusV2:
                                 amount = round(amount, 2)
                             
                             # Check minimum
-                            markets = self.exchange.load_markets()
-                            min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
+                            min_amount = 0.00001
+                            try:
+                                markets = self.exchange.load_markets()
+                                min_amount = markets[pair]['limits']['amount']['min'] or 0.00001
+                            except Exception:
+                                try:
+                                    min_amount = self.exchange.get_min_trade_amount(pair)
+                                except Exception:
+                                    pass
                             
                             if amount >= min_amount:
-                                # EXECUTE TRADE - TRY BOTH BUY AND SELL
-                                if best['signal'] in ['UP', 'BUY']:
+                                # EXECUTE TRADE - SELL first if indicated
+                                if should_sell:
+                                    pos = self.state['positions'][pair]
+                                    print(f"🔥 EXECUTING SELL ORDER...")
+                                    order = self.exchange.create_market_sell_order(pair, pos['amount'])
+                                    print(f"✅ SOLD {pos['amount']:.6f} {base} @ ${price:.2f}")
+                                    self.send_telegram(f"✅ SOLD\n\n{pos['amount']:.6f} {base}\nPrice: ${price:.2f}\nEntry: ${pos['entry_price']:.2f}\nP&L: ${(price - pos['entry_price']) * pos['amount']:.2f}")
+                                    try:
+                                        pnl = (price - pos['entry_price']) * pos['amount']
+                                        self.store.record_order(order)
+                                        self.store.record_trade(order.get('id','N/A'), pair, 'sell', price, pos['amount'], price*pos['amount'], pnl)
+                                        self.store.close_position(pair)
+                                    except Exception:
+                                        pass
+                                    del self.state['positions'][pair]
+                                    # Mark forced sell complete for this pair
+                                    if force_sell_env:
+                                        self.state['forced']['sell_done'][pair] = True
+                                elif best['signal'] in ['UP', 'BUY'] or force_paper:
                                     print(f"🔥 EXECUTING BUY ORDER...")
-                                    order = self.exchange.create_market_buy_order(best['pair'], amount)
+                                    order = self.exchange.create_market_buy_order(pair, amount)
                                     print(f"✅ BOUGHT {amount:.6f} {base} @ ${price:.2f}")
                                     print(f"   Order ID: {order.get('id', 'N/A')}")
                                     self.send_telegram(f"✅ TRADE EXECUTED\n\nBUY {amount:.6f} {base}\nPrice: ${price:.2f}\nValue: ${amount_usd:.2f}\nConfidence: {best['confidence']*100:.0f}%\nOrder: {order.get('id', 'N/A')}")
-                                elif best['signal'] in ['DOWN', 'SELL'] and best['pair'] in self.state['positions']:
-                                    # Only sell if we have a position
-                                    pos = self.state['positions'][best['pair']]
-                                    print(f"🔥 EXECUTING SELL ORDER...")
-                                    order = self.exchange.create_market_sell_order(best['pair'], pos['amount'])
-                                    print(f"✅ SOLD {pos['amount']:.6f} {base} @ ${price:.2f}")
-                                    self.send_telegram(f"✅ SOLD\n\n{pos['amount']:.6f} {base}\nPrice: ${price:.2f}\nEntry: ${pos['entry_price']:.2f}\nP&L: ${(price - pos['entry_price']) * pos['amount']:.2f}")
-                                    del self.state['positions'][best['pair']]
                                 else:
                                     print(f"📊 {best['signal']} signal - no position to sell")
                                 
-                                # Register with conflict resolver
-                                self.conflict_resolver.open_position(best['pair'], {'entry': price, 'amount': amount})
-                                
-                                # Add to state
-                                self.state['positions'][best['pair']] = {
-                                    'entry_price': price,
-                                    'amount': amount,
-                                    'signal': best['signal'],
-                                    'time': datetime.now().isoformat()
-                                }
+                                # Register BUY: open position in systems/state only on buy
+                                if best['signal'] in ['UP', 'BUY'] or force_paper:
+                                    try:
+                                        self.conflict_resolver.open_position(pair, {'entry': price, 'amount': amount})
+                                    except Exception:
+                                        pass
+                                    # Add to state
+                                    self.state['positions'][pair] = {
+                                        'entry_price': price,
+                                        'amount': amount,
+                                        'signal': best['signal'],
+                                        'time': datetime.now().isoformat()
+                                    }
+                                    # Persist order and position
+                                    try:
+                                        self.store.record_order(order)
+                                        side = 'long'
+                                        self.store.open_position(pair, side, price, amount)
+                                    except Exception:
+                                        pass
+                                    # Mark forced buy completed to avoid spamming
+                                    if force_paper:
+                                        self.state['forced']['buy_done'] = True
                             else:
                                 print(f"⚠️ Amount {amount:.6f} below minimum {min_amount}")
                         
@@ -198,6 +315,9 @@ class APEXNexusV2:
                     self.send_telegram(f"💓 APEX Running\n\nCycle: {cycle}\nMarket: {market.get('regime')}\nActive monitoring all pairs")
                 
                 print(f"✅ Cycle complete")
+                if max_cycles and self.state['cycle'] >= max_cycles:
+                    print("Reached max cycles - exiting run loop")
+                    return
                 time.sleep(60)
                 
             except Exception as e:
@@ -205,5 +325,10 @@ class APEXNexusV2:
                 time.sleep(60)
 
 if __name__ == '__main__':
+    # Allow a lightweight, fast auth check without starting the full system
+    if os.getenv('APEX_AUTH_CHECK_ONLY') == '1':
+        rc = perform_auth_check_standalone()
+        sys.exit(rc)
+
     nexus = APEXNexusV2()
     nexus.run()
