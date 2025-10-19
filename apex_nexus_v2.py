@@ -79,7 +79,7 @@ class APEXNexusV2:
         
         # Initialize exchange with PAPER fallback on auth failure
         api_key, api_secret = get_exchange_credentials()
-        use_paper = False
+        use_paper = os.getenv('APEX_MODE', 'auto').lower() == 'paper'
         if not api_key or not api_secret:
             use_paper = True
         else:
@@ -136,7 +136,7 @@ class APEXNexusV2:
             'take_profit': 0.05
         }
         
-        self.state = {'trading_enabled': True, 'positions': {}, 'cycle': 0}
+        self.state = {'trading_enabled': True, 'positions': {}, 'cycle': 0, 'mode': 'PAPER' if use_paper else 'LIVE'}
         self.store = TradeStore('data/trading.db')
         
         print(f"✅ ALL SYSTEMS INITIALIZED\n")
@@ -150,6 +150,8 @@ class APEXNexusV2:
     
     def run(self):
         print("Starting autonomous trading cycle...\n")
+        max_cycles_env = os.getenv('APEX_MAX_CYCLES')
+        max_cycles = int(max_cycles_env) if max_cycles_env and max_cycles_env.isdigit() else None
         
         while True:
             self.state['cycle'] += 1
@@ -277,6 +279,9 @@ class APEXNexusV2:
                     self.send_telegram(f"💓 APEX Running\n\nCycle: {cycle}\nMarket: {market.get('regime')}\nActive monitoring all pairs")
                 
                 print(f"✅ Cycle complete")
+                if max_cycles and self.state['cycle'] >= max_cycles:
+                    print("Reached max cycles - exiting run loop")
+                    return
                 time.sleep(60)
                 
             except Exception as e:

@@ -80,6 +80,35 @@ class TradeStore:
         conn.commit()
         conn.close()
 
+    def list_orders(self, limit: int = 20) -> List[Dict[str, Any]]:
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, symbol, side, type, price, amount, cost, status, created_at
+            FROM orders
+            ORDER BY datetime(created_at) DESC
+            LIMIT ?
+            """,
+            (int(limit),),
+        )
+        rows = cur.fetchall()
+        conn.close()
+        return [
+            {
+                'id': r[0],
+                'symbol': r[1],
+                'side': r[2],
+                'type': r[3],
+                'price': float(r[4]),
+                'amount': float(r[5]),
+                'cost': float(r[6]),
+                'status': r[7],
+                'created_at': r[8],
+            }
+            for r in rows
+        ]
+
     def open_position(self, symbol: str, side: str, entry_price: float, amount: float) -> None:
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
