@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-APEX V3 - FULLY INTEGRATED SYSTEM
+TPS19 - FULLY INTEGRATED SYSTEM
 All features in proper layers - NO isolated bots
 """
 
@@ -27,12 +27,12 @@ from execution_layer import ExecutionLayer
 from ai_ml_layer import AIMLLayer
 from infrastructure_layer import InfrastructureLayer
 
-class APEXV3:
+class TPS19:
     """Fully integrated trading system"""
     
     def __init__(self):
         print("=" * 80)
-        print("🚀 APEX V3 - FULLY INTEGRATED SYSTEM")
+        print("🚀 TPS19 - FULLY INTEGRATED SYSTEM")
         print("=" * 80)
         
         # Initialize infrastructure
