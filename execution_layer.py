@@ -8,6 +8,7 @@ import time
 from datetime import datetime
 from typing import Dict
 import ccxt
+from trade_persistence import PersistenceManager
 
 class ExecutionLayer:
     """Smart order execution with multiple algorithms"""
@@ -16,6 +17,9 @@ class ExecutionLayer:
         self.name = "Execution_Layer"
         self.version = "1.0.0"
         self.exchange = exchange
+        
+        # Initialize persistence
+        self.persistence = PersistenceManager()
         
         self.metrics = {'orders': 0, 'fills': 0, 'slippage_total': 0}
         

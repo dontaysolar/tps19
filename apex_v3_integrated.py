@@ -76,7 +76,12 @@ class APEXV3:
             'pairs': ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'],
             'update_interval': 60,
             'use_ai_predictions': True,
-            'min_confidence': 0.70
+            'min_confidence': 0.70,
+            
+            # Feature flags - disable placeholders
+            'use_sentiment': False,  # Placeholder - no real APIs connected
+            'use_onchain': False,    # Placeholder - no real APIs connected
+            'use_real_news': False,  # Placeholder - no real APIs connected
         }
         
         self.state = {
