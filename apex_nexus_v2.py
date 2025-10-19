@@ -136,7 +136,13 @@ class APEXNexusV2:
             'take_profit': 0.05
         }
         
-        self.state = {'trading_enabled': True, 'positions': {}, 'cycle': 0, 'mode': 'PAPER' if use_paper else 'LIVE'}
+        self.state = {
+            'trading_enabled': True,
+            'positions': {},
+            'cycle': 0,
+            'mode': 'PAPER' if use_paper else 'LIVE',
+            'forced': {'buy_done': False, 'sell_done': {}}
+        }
         self.store = TradeStore('data/trading.db')
         
         print(f"✅ ALL SYSTEMS INITIALIZED\n")
@@ -202,10 +208,13 @@ class APEXNexusV2:
                     # Check with conflict resolver - LOWERED THRESHOLD
                     can_trade = self.conflict_resolver.can_open_position(best['pair'])
                     # Force one BUY in PAPER mode if env requests and no positions yet
-                    force_paper = os.getenv('APEX_FORCE_PAPER_TRADE') == '1' and self.state.get('mode') == 'PAPER'
+                    force_paper_env = os.getenv('APEX_FORCE_PAPER_TRADE') == '1' and self.state.get('mode') == 'PAPER'
+                    force_paper = force_paper_env and not self.state['forced']['buy_done']
                     # Prioritize closing existing positions if SELL signal appears
                     have_pos = best['pair'] in self.state['positions']
-                    should_sell = (best['signal'] in ['DOWN', 'SELL'] and have_pos) or (os.getenv('APEX_FORCE_PAPER_SELL')=='1' and have_pos and self.state.get('mode')=='PAPER')
+                    force_sell_env = os.getenv('APEX_FORCE_PAPER_SELL')=='1' and self.state.get('mode')=='PAPER'
+                    forced_this_pair = self.state['forced']['sell_done'].get(best['pair'])
+                    should_sell = (best['signal'] in ['DOWN', 'SELL'] and have_pos) or (force_sell_env and have_pos and not forced_this_pair)
                     should_buy = (can_trade['allowed'] and best['confidence'] >= 0.65) or (force_paper and not have_pos)
 
                     if should_sell or should_buy:
@@ -259,6 +268,9 @@ class APEXNexusV2:
                                     except Exception:
                                         pass
                                     del self.state['positions'][pair]
+                                    # Mark forced sell complete for this pair
+                                    if force_sell_env:
+                                        self.state['forced']['sell_done'][pair] = True
                                 elif best['signal'] in ['UP', 'BUY'] or force_paper:
                                     print(f"🔥 EXECUTING BUY ORDER...")
                                     order = self.exchange.create_market_buy_order(pair, amount)
@@ -288,6 +300,9 @@ class APEXNexusV2:
                                         self.store.open_position(pair, side, price, amount)
                                     except Exception:
                                         pass
+                                    # Mark forced buy completed to avoid spamming
+                                    if force_paper:
+                                        self.state['forced']['buy_done'] = True
                             else:
                                 print(f"⚠️ Amount {amount:.6f} below minimum {min_amount}")
                         
