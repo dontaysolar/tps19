@@ -44,6 +44,18 @@ class SignalGenerationLayer:
         volume_signal = self.volume_strategy(analysis)
         signals.append(volume_signal)
         
+        # Strategy 7: Wyckoff-based
+        wyckoff_signal = self.wyckoff_strategy(analysis)
+        signals.append(wyckoff_signal)
+        
+        # Strategy 8: Ichimoku-based
+        ichimoku_signal = self.ichimoku_strategy(analysis)
+        signals.append(ichimoku_signal)
+        
+        # Strategy 9: Order Flow
+        order_flow_signal = self.order_flow_strategy(analysis)
+        signals.append(order_flow_signal)
+        
         # Aggregate all signals
         return self.aggregate_signals(signals)
     
@@ -164,6 +176,48 @@ class SignalGenerationLayer:
             return {'signal': 'REVERSAL', 'confidence': 0.70, 'strategy': 'VOLUME', 'weight': 0.15}
         
         return {'signal': 'HOLD', 'confidence': 0.50, 'strategy': 'VOLUME', 'weight': 0.10}
+    
+    def wyckoff_strategy(self, analysis: Dict) -> Dict:
+        """Wyckoff cycle-based strategy"""
+        wyckoff = analysis.get('wyckoff', {})
+        phase = wyckoff.get('phase', 'UNKNOWN')
+        
+        if phase == 'ACCUMULATION':
+            return {'signal': 'BUY', 'confidence': 0.85, 'strategy': 'WYCKOFF', 'weight': 0.20}
+        elif phase == 'MARKUP':
+            return {'signal': 'BUY', 'confidence': 0.80, 'strategy': 'WYCKOFF', 'weight': 0.15}
+        elif phase == 'DISTRIBUTION':
+            return {'signal': 'SELL', 'confidence': 0.80, 'strategy': 'WYCKOFF', 'weight': 0.15}
+        elif phase == 'MARKDOWN':
+            return {'signal': 'SELL', 'confidence': 0.85, 'strategy': 'WYCKOFF', 'weight': 0.20}
+        
+        return {'signal': 'HOLD', 'confidence': 0.50, 'strategy': 'WYCKOFF', 'weight': 0.10}
+    
+    def ichimoku_strategy(self, analysis: Dict) -> Dict:
+        """Ichimoku Cloud strategy"""
+        ichimoku = analysis.get('ichimoku', {})
+        signal = ichimoku.get('signal', 'NEUTRAL')
+        position = ichimoku.get('price_vs_cloud', 'IN_CLOUD')
+        
+        if signal == 'BULLISH' and position == 'ABOVE':
+            return {'signal': 'BUY', 'confidence': 0.80, 'strategy': 'ICHIMOKU', 'weight': 0.20}
+        elif signal == 'BEARISH' and position == 'BELOW':
+            return {'signal': 'SELL', 'confidence': 0.80, 'strategy': 'ICHIMOKU', 'weight': 0.20}
+        
+        return {'signal': 'HOLD', 'confidence': 0.50, 'strategy': 'ICHIMOKU', 'weight': 0.10}
+    
+    def order_flow_strategy(self, analysis: Dict) -> Dict:
+        """Order flow-based strategy"""
+        order_flow = analysis.get('order_flow', {})
+        pressure = order_flow.get('pressure', 'NEUTRAL')
+        cvd = order_flow.get('recent_cvd', 0)
+        
+        if pressure == 'BUYING' and cvd > 0:
+            return {'signal': 'BUY', 'confidence': 0.75, 'strategy': 'ORDER_FLOW', 'weight': 0.15}
+        elif pressure == 'SELLING' and cvd < 0:
+            return {'signal': 'SELL', 'confidence': 0.75, 'strategy': 'ORDER_FLOW', 'weight': 0.15}
+        
+        return {'signal': 'HOLD', 'confidence': 0.50, 'strategy': 'ORDER_FLOW', 'weight': 0.10}
     
     def aggregate_signals(self, signals: List[Dict]) -> Dict:
         """Aggregate all strategy signals into one"""
