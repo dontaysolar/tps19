@@ -268,23 +268,26 @@ class APEXNexusV2:
                                 else:
                                     print(f"📊 {best['signal']} signal - no position to sell")
                                 
-                                # Register with conflict resolver
-                                self.conflict_resolver.open_position(pair, {'entry': price, 'amount': amount})
-                                
-                                # Add to state
-                                self.state['positions'][pair] = {
-                                    'entry_price': price,
-                                    'amount': amount,
-                                    'signal': best['signal'],
-                                    'time': datetime.now().isoformat()
-                                }
-                                # Persist order and position
-                                try:
-                                    self.store.record_order(order)
-                                    side = 'long' if best['signal'] in ['UP', 'BUY'] else 'short'
-                                    self.store.open_position(pair, side, price, amount)
-                                except Exception as _:
-                                    pass
+                                # Register BUY: open position in systems/state only on buy
+                                if best['signal'] in ['UP', 'BUY'] or force_paper:
+                                    try:
+                                        self.conflict_resolver.open_position(pair, {'entry': price, 'amount': amount})
+                                    except Exception:
+                                        pass
+                                    # Add to state
+                                    self.state['positions'][pair] = {
+                                        'entry_price': price,
+                                        'amount': amount,
+                                        'signal': best['signal'],
+                                        'time': datetime.now().isoformat()
+                                    }
+                                    # Persist order and position
+                                    try:
+                                        self.store.record_order(order)
+                                        side = 'long'
+                                        self.store.open_position(pair, side, price, amount)
+                                    except Exception:
+                                        pass
                             else:
                                 print(f"⚠️ Amount {amount:.6f} below minimum {min_amount}")
                         
