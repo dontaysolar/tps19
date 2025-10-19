@@ -203,7 +203,12 @@ class APEXNexusV2:
                     can_trade = self.conflict_resolver.can_open_position(best['pair'])
                     # Force one BUY in PAPER mode if env requests and no positions yet
                     force_paper = os.getenv('APEX_FORCE_PAPER_TRADE') == '1' and self.state.get('mode') == 'PAPER'
-                    if (can_trade['allowed'] and best['confidence'] >= 0.65) or force_paper:
+                    # Prioritize closing existing positions if SELL signal appears
+                    have_pos = best['pair'] in self.state['positions']
+                    should_sell = (best['signal'] in ['DOWN', 'SELL'] and have_pos) or (os.getenv('APEX_FORCE_PAPER_SELL')=='1' and have_pos and self.state.get('mode')=='PAPER')
+                    should_buy = (can_trade['allowed'] and best['confidence'] >= 0.65) or (force_paper and not have_pos)
+
+                    if should_sell or should_buy:
                         # EXECUTE REAL TRADE
                         try:
                             pair = best['pair']
@@ -239,21 +244,13 @@ class APEXNexusV2:
                                     pass
                             
                             if amount >= min_amount:
-                                # EXECUTE TRADE - TRY BOTH BUY AND SELL
-                                if best['signal'] in ['UP', 'BUY'] or force_paper:
-                                    print(f"🔥 EXECUTING BUY ORDER...")
-                                    order = self.exchange.create_market_buy_order(pair, amount)
-                                    print(f"✅ BOUGHT {amount:.6f} {base} @ ${price:.2f}")
-                                    print(f"   Order ID: {order.get('id', 'N/A')}")
-                                    self.send_telegram(f"✅ TRADE EXECUTED\n\nBUY {amount:.6f} {base}\nPrice: ${price:.2f}\nValue: ${amount_usd:.2f}\nConfidence: {best['confidence']*100:.0f}%\nOrder: {order.get('id', 'N/A')}")
-                                elif (best['signal'] in ['DOWN', 'SELL'] or os.getenv('APEX_FORCE_PAPER_SELL')=='1') and pair in self.state['positions']:
-                                    # Only sell if we have a position
+                                # EXECUTE TRADE - SELL first if indicated
+                                if should_sell:
                                     pos = self.state['positions'][pair]
                                     print(f"🔥 EXECUTING SELL ORDER...")
                                     order = self.exchange.create_market_sell_order(pair, pos['amount'])
                                     print(f"✅ SOLD {pos['amount']:.6f} {base} @ ${price:.2f}")
                                     self.send_telegram(f"✅ SOLD\n\n{pos['amount']:.6f} {base}\nPrice: ${price:.2f}\nEntry: ${pos['entry_price']:.2f}\nP&L: ${(price - pos['entry_price']) * pos['amount']:.2f}")
-                                    # Persist exit trade and remove from state/store
                                     try:
                                         pnl = (price - pos['entry_price']) * pos['amount']
                                         self.store.record_order(order)
@@ -262,6 +259,12 @@ class APEXNexusV2:
                                     except Exception:
                                         pass
                                     del self.state['positions'][pair]
+                                elif best['signal'] in ['UP', 'BUY'] or force_paper:
+                                    print(f"🔥 EXECUTING BUY ORDER...")
+                                    order = self.exchange.create_market_buy_order(pair, amount)
+                                    print(f"✅ BOUGHT {amount:.6f} {base} @ ${price:.2f}")
+                                    print(f"   Order ID: {order.get('id', 'N/A')}")
+                                    self.send_telegram(f"✅ TRADE EXECUTED\n\nBUY {amount:.6f} {base}\nPrice: ${price:.2f}\nValue: ${amount_usd:.2f}\nConfidence: {best['confidence']*100:.0f}%\nOrder: {order.get('id', 'N/A')}")
                                 else:
                                     print(f"📊 {best['signal']} signal - no position to sell")
                                 

@@ -208,6 +208,19 @@ _Last updated: {self.status.get('last_update', 'Never')}_
         except Exception:
             pass
 
+        # Last order summary
+        try:
+            from modules.trade_store import TradeStore
+            store = TradeStore('data/trading.db')
+            orders = store.list_orders(limit=1)
+            if orders:
+                o = orders[0]
+                self.send_message(
+                    f"🧾 *Last Order*\n{o['created_at']} {o['symbol']} {o['side']} {o['amount']:.6f} @ ${o['price']:.2f}"
+                )
+        except Exception:
+            pass
+
     def cmd_mode(self, text):
         """Switch run mode between PAPER and LIVE (affects next start)."""
         mode = 'paper' if 'paper' in text else 'live'
