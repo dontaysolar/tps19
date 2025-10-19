@@ -157,3 +157,16 @@ class TradeStore:
             }
             for r in rows
         ]
+
+    def record_trade(self, order_id: str, symbol: str, side: str, price: float, amount: float, cost: float, pnl: float) -> None:
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO trades (order_id, symbol, side, price, amount, cost, pnl, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (order_id, symbol, side, float(price), float(amount), float(cost), float(pnl), datetime.now().isoformat()),
+        )
+        conn.commit()
+        conn.close()
