@@ -34,6 +34,10 @@ class MarketAnalysisLayer:
             'patterns': self.detect_patterns(ohlcv),
             'price_action': self.analyze_price_action(ohlcv),
             'market_structure': self.analyze_market_structure(ohlcv),
+            'wyckoff': self.analyze_wyckoff(ohlcv),
+            'elliott_wave': self.detect_elliott_wave(ohlcv),
+            'ichimoku': self.calculate_ichimoku(ohlcv),
+            'order_flow': self.analyze_order_flow(ohlcv),
             'timestamp': datetime.now().isoformat()
         }
     
@@ -340,6 +344,127 @@ class MarketAnalysisLayer:
             'r_squared': r_squared,
             'trending': r_squared > 0.7,
             'trend_strength': r_squared
+        }
+    
+    def analyze_wyckoff(self, ohlcv: List) -> Dict:
+        """Wyckoff market cycle analysis"""
+        if len(ohlcv) < 100:
+            return {'phase': 'UNKNOWN'}
+        
+        closes = np.array([c[4] for c in ohlcv])
+        volumes = np.array([c[5] for c in ohlcv])
+        
+        # Simplified Wyckoff phase detection
+        price_trend = (closes[-1] - closes[-50]) / closes[-50]
+        vol_trend = (volumes[-10:].mean() - volumes[-50:-10].mean()) / volumes[-50:-10].mean()
+        
+        if price_trend < -0.15 and vol_trend > 0.5:
+            phase = 'ACCUMULATION'
+        elif price_trend > 0.10 and vol_trend > 0.3:
+            phase = 'MARKUP'
+        elif price_trend > 0 and vol_trend < 0:
+            phase = 'DISTRIBUTION'
+        elif price_trend < -0.10:
+            phase = 'MARKDOWN'
+        else:
+            phase = 'TRANSITION'
+        
+        return {'phase': phase, 'price_trend': price_trend, 'volume_trend': vol_trend}
+    
+    def detect_elliott_wave(self, ohlcv: List) -> Dict:
+        """Elliott Wave analysis (simplified)"""
+        if len(ohlcv) < 50:
+            return {'wave': 'UNKNOWN'}
+        
+        closes = [c[4] for c in ohlcv]
+        
+        # Find swing points
+        swings = []
+        for i in range(5, len(closes) - 5):
+            if closes[i] == max(closes[i-5:i+5]) or closes[i] == min(closes[i-5:i+5]):
+                swings.append(closes[i])
+        
+        # Simplified wave count
+        if len(swings) >= 5:
+            wave = 'COMPLETE_CYCLE'
+        elif len(swings) >= 3:
+            wave = 'PARTIAL_CYCLE'
+        else:
+            wave = 'FORMING'
+        
+        return {'wave': wave, 'swing_count': len(swings)}
+    
+    def calculate_ichimoku(self, ohlcv: List) -> Dict:
+        """Ichimoku Cloud indicators"""
+        if len(ohlcv) < 52:
+            return {'signal': 'NEUTRAL'}
+        
+        highs = np.array([c[2] for c in ohlcv])
+        lows = np.array([c[3] for c in ohlcv])
+        closes = np.array([c[4] for c in ohlcv])
+        
+        # Tenkan-sen (Conversion Line): (9-period high + 9-period low) / 2
+        tenkan = (highs[-9:].max() + lows[-9:].min()) / 2
+        
+        # Kijun-sen (Base Line): (26-period high + 26-period low) / 2
+        kijun = (highs[-26:].max() + lows[-26:].min()) / 2
+        
+        # Senkou Span A: (Tenkan + Kijun) / 2, plotted 26 periods ahead
+        senkou_a = (tenkan + kijun) / 2
+        
+        # Senkou Span B: (52-period high + 52-period low) / 2, plotted 26 periods ahead
+        senkou_b = (highs[-52:].max() + lows[-52:].min()) / 2
+        
+        current = closes[-1]
+        
+        # Signal generation
+        cloud_top = max(senkou_a, senkou_b)
+        cloud_bottom = min(senkou_a, senkou_b)
+        
+        if current > cloud_top and tenkan > kijun:
+            signal = 'BULLISH'
+        elif current < cloud_bottom and tenkan < kijun:
+            signal = 'BEARISH'
+        else:
+            signal = 'NEUTRAL'
+        
+        return {
+            'tenkan': tenkan,
+            'kijun': kijun,
+            'senkou_a': senkou_a,
+            'senkou_b': senkou_b,
+            'cloud_top': cloud_top,
+            'cloud_bottom': cloud_bottom,
+            'signal': signal,
+            'price_vs_cloud': 'ABOVE' if current > cloud_top else 'BELOW' if current < cloud_bottom else 'IN_CLOUD'
+        }
+    
+    def analyze_order_flow(self, ohlcv: List) -> Dict:
+        """Order flow analysis"""
+        if len(ohlcv) < 10:
+            return {'delta': 0}
+        
+        closes = np.array([c[4] for c in ohlcv])
+        volumes = np.array([c[5] for c in ohlcv])
+        
+        # Cumulative Volume Delta (simplified)
+        deltas = []
+        for i in range(1, len(closes)):
+            if closes[i] > closes[i-1]:
+                delta = volumes[i] * 0.7  # Assume 70% buy
+            elif closes[i] < closes[i-1]:
+                delta = -volumes[i] * 0.7  # Assume 70% sell
+            else:
+                delta = 0
+            deltas.append(delta)
+        
+        cvd = sum(deltas)
+        recent_cvd = sum(deltas[-10:])
+        
+        return {
+            'cvd': cvd,
+            'recent_cvd': recent_cvd,
+            'pressure': 'BUYING' if recent_cvd > 0 else 'SELLING' if recent_cvd < 0 else 'NEUTRAL'
         }
 
 if __name__ == '__main__':
