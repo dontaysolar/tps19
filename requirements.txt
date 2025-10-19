@@ -2,7 +2,7 @@
 # Generated: 2025-10-19
 
 # Core Trading
-ccxt>=4.0.0              # Crypto exchange integration
+ccxt[async]>=4.0.0       # Crypto exchange integration (with async/WebSocket support)
 numpy>=1.24.0            # Numerical computing
 python-dotenv>=1.0.0     # Environment variable management
 requests>=2.31.0         # HTTP requests
