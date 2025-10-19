@@ -6,7 +6,7 @@ All trading strategies consolidated into unified signal generation
 
 import numpy as np
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List
 
 class SignalGenerationLayer:
     """Generate unified trading signals from all strategies"""
