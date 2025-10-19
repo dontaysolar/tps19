@@ -99,7 +99,17 @@ class TPS19:
         print(f"   Layers: 10 (Market, Signals, AI/ML, Risk, Execution, Sentiment, On-Chain, Portfolio, Backtesting, Infrastructure)")
         print("=" * 80 + "\n")
         
-        self.infra.notifications.send("✅ TPS19 Online - All layers integrated", "HIGH")
+        # Send startup notification with clear status
+        mode = 'LIVE' if self.config['trading_enabled'] else 'MONITORING'
+        self.infra.notifications.send(
+            "✅ TPS19 System Started\n"
+            f"Mode: {mode}\n"
+            f"Trading: {'ENABLED ⚠️' if self.config['trading_enabled'] else 'DISABLED ✅'}\n"
+            f"Pairs: {', '.join(self.config['pairs'])}\n"
+            f"AI/ML: {'ON' if self.config['use_ai_predictions'] else 'OFF'}",
+            "HIGH",
+            trading_status=mode
+        )
     
     def process_symbol(self, symbol: str) -> Dict:
         """Process one symbol through all layers"""
@@ -151,9 +161,13 @@ class TPS19:
                     "TPS19"
                 )
                 
+                mode = 'LIVE' if self.config['trading_enabled'] else 'MONITORING'
                 self.infra.notifications.send(
-                    f"TPS19: {final_signal['signal']} {symbol} @ {ticker['last']:.2f}",
-                    "NORMAL"
+                    f"{'✅ EXECUTED' if self.config['trading_enabled'] else '📊 SIGNAL ONLY'}:\n"
+                    f"{final_signal['signal']} {symbol} @ {ticker['last']:.2f}\n"
+                    f"Confidence: {final_signal['confidence']:.0%}",
+                    "NORMAL",
+                    trading_status=mode
                 )
                 
                 return execution_result
@@ -270,10 +284,16 @@ class TPS19:
                 # Status update every 30 cycles
                 if cycle % 30 == 0:
                     uptime = (datetime.now() - self.state['start_time']).seconds // 60
-                    self.infra.notifications.send(
-                        f"💓 TPS19 Running\nCycle: {cycle}\nUptime: {uptime}min\nMode: {'Trading' if self.config['trading_enabled'] else 'Monitoring'}",
-                        "NORMAL"
-                    )
+                mode = 'LIVE' if self.config['trading_enabled'] else 'MONITORING'
+                self.infra.notifications.send(
+                    f"💓 TPS19 Status Update\n"
+                    f"Cycle: {cycle}\n"
+                    f"Uptime: {uptime}min\n"
+                    f"Trades Today: {self.state['trades_today']}\n"
+                    f"Mode: {mode}",
+                    "NORMAL",
+                    trading_status=mode
+                )
                 
                 print(f"\n✅ Cycle complete")
                 time.sleep(self.config['update_interval'])
