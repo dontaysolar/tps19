@@ -86,10 +86,11 @@ class APEXV3:
         }
         
         print("\n" + "=" * 80)
-        print("✅ APEX V3 INITIALIZED - ALL LAYERS ACTIVE")
+        print("✅ APEX V3 INITIALIZED - ALL 10 LAYERS ACTIVE")
         print(f"   Trading: {'ENABLED' if self.config['trading_enabled'] else 'MONITORING ONLY'}")
         print(f"   Pairs: {len(self.config['pairs'])}")
         print(f"   AI/ML: {'ENABLED' if self.config['use_ai_predictions'] else 'DISABLED'}")
+        print(f"   Layers: 10 (Market, Signals, AI/ML, Risk, Execution, Sentiment, On-Chain, Portfolio, Backtesting, Infrastructure)")
         print("=" * 80 + "\n")
         
         self.infra.notifications.send("✅ APEX V3 Online - All layers integrated", "HIGH")
@@ -170,45 +171,61 @@ class APEXV3:
             self.infra.circuit_breaker.record_failure(f"process_{symbol}")
             return {'action': 'ERROR', 'error': str(e)}
     
-    def combine_signals(self, technical: Dict, ai: Dict) -> Dict:
-        """Combine technical and AI signals"""
+    def combine_signals(self, technical: Dict, ai: Dict, sentiment: Dict = None, onchain: Dict = None) -> Dict:
+        """Combine all signals (technical, AI, sentiment, on-chain)"""
+        signals = []
+        
+        # Technical signal
         tech_signal = technical.get('signal', 'HOLD')
         tech_conf = technical.get('confidence', 0.5)
+        if tech_signal != 'HOLD':
+            signals.append({'signal': tech_signal, 'confidence': tech_conf, 'weight': 0.35})
         
+        # AI signal
         ai_signal = ai.get('signal', 'HOLD')
         ai_conf = ai.get('confidence', 0)
+        if ai_signal != 'HOLD' and ai_conf > 0:
+            signals.append({'signal': ai_signal, 'confidence': ai_conf, 'weight': 0.30})
         
-        # Both agree = high confidence
-        if tech_signal == ai_signal and tech_signal != 'HOLD':
+        # Sentiment signal
+        if sentiment:
+            sent_signal = sentiment.get('overall_sentiment', 'NEUTRAL')
+            sent_conf = sentiment.get('confidence', 0.5)
+            if sent_signal in ['BULLISH', 'BEARISH']:
+                sig = 'BUY' if sent_signal == 'BULLISH' else 'SELL'
+                signals.append({'signal': sig, 'confidence': sent_conf, 'weight': 0.20})
+        
+        # On-chain signal
+        if onchain:
+            health = onchain.get('overall_health', {})
+            health_status = health.get('status', 'NEUTRAL')
+            if health_status in ['HEALTHY', 'UNHEALTHY']:
+                sig = 'BUY' if health_status == 'HEALTHY' else 'SELL'
+                signals.append({'signal': sig, 'confidence': 0.65, 'weight': 0.15})
+        
+        # Aggregate all signals
+        if not signals:
+            return {'signal': 'HOLD', 'confidence': 0.50, 'source': 'NO_SIGNALS'}
+        
+        buy_score = sum(s['confidence'] * s['weight'] for s in signals if s['signal'] == 'BUY')
+        sell_score = sum(s['confidence'] * s['weight'] for s in signals if s['signal'] == 'SELL')
+        
+        if buy_score > sell_score and buy_score > 0.5:
             return {
-                'signal': tech_signal,
-                'confidence': min(0.95, (tech_conf + ai_conf) / 2 + 0.15),
-                'source': 'TECHNICAL_AI_CONSENSUS'
+                'signal': 'BUY',
+                'confidence': buy_score,
+                'source': 'MULTI_LAYER_CONSENSUS',
+                'contributors': len(signals)
             }
-        
-        # Technical higher confidence
-        elif tech_conf > ai_conf:
+        elif sell_score > buy_score and sell_score > 0.5:
             return {
-                'signal': tech_signal,
-                'confidence': tech_conf,
-                'source': 'TECHNICAL'
+                'signal': 'SELL',
+                'confidence': sell_score,
+                'source': 'MULTI_LAYER_CONSENSUS',
+                'contributors': len(signals)
             }
-        
-        # AI higher confidence
-        elif ai_conf > tech_conf:
-            return {
-                'signal': ai_signal,
-                'confidence': ai_conf,
-                'source': 'AI'
-            }
-        
-        # Default to hold
         else:
-            return {
-                'signal': 'HOLD',
-                'confidence': 0.50,
-                'source': 'NO_CONSENSUS'
-            }
+            return {'signal': 'HOLD', 'confidence': 0.50, 'source': 'NO_CONSENSUS'}
     
     def run(self):
         """Main trading loop"""
