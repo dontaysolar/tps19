@@ -5,8 +5,8 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'APEX V3 - Trading Dashboard',
-  description: '3Commas-style trading dashboard for APEX V3',
+  title: 'TPS19 - Trading Dashboard',
+  description: '3Commas-style trading dashboard for TPS19',
 }
 
 export default function RootLayout({

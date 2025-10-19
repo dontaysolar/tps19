@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-APEX V3 COMPREHENSIVE TEST SUITE
+TPS19 COMPREHENSIVE TEST SUITE
 Tests all 10 layers for functionality
 """
 
@@ -310,7 +310,7 @@ def test_system_integration():
 def main():
     """Run all tests"""
     print("="*60)
-    print("🧪 APEX V3 COMPREHENSIVE TEST SUITE")
+    print("🧪 TPS19 COMPREHENSIVE TEST SUITE")
     print("="*60)
     
     total_passed = 0

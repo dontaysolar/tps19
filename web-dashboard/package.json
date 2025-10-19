@@ -1,7 +1,7 @@
 {
-  "name": "apex-v3-dashboard",
-  "version": "1.0.0",
-  "description": "3Commas-style web dashboard for APEX V3",
+  "name": "tps19-dashboard",
+  "version": "19.0.0",
+  "description": "3Commas-style web dashboard for TPS19",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

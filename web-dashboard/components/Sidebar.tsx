@@ -12,8 +12,8 @@ export default function Sidebar({ activeTab, setActiveTab }: any) {
   return (
     <aside className="w-64 bg-slate-800 border-r border-slate-700 flex flex-col">
       <div className="p-6 border-b border-slate-700">
-        <h1 className="text-2xl font-bold text-primary-400">APEX V3</h1>
-        <p className="text-sm text-gray-400">Trading Dashboard</p>
+        <h1 className="text-2xl font-bold text-primary-400">TPS19</h1>
+        <p className="text-sm text-gray-400 mt-1">v19.0 Trading Platform</p>
       </div>
       
       <nav className="flex-1 p-4">

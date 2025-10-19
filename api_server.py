@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-APEX V3 - REST API SERVER
+TPS19 - REST API SERVER  
 Provides backend API for web dashboard
 """
 
@@ -128,7 +128,7 @@ def get_health():
 
 if __name__ == '__main__':
     print("="*60)
-    print("🚀 APEX V3 API Server Starting")
+    print("🚀 TPS19 API Server Starting")
     print("="*60)
     print("API running on: http://localhost:8000")
     print("Web dashboard: http://localhost:3000")

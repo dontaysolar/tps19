@@ -31,7 +31,7 @@ echo ""
 if python3 verify_system.py; then
     echo ""
     echo "================================================================================"
-    echo "✅ VERIFICATION PASSED - STARTING APEX V3"
+    echo "✅ VERIFICATION PASSED - STARTING TPS19"
     echo "================================================================================"
     echo ""
     echo "Mode: MONITORING (Trading disabled by default)"

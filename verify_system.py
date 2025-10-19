@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SYSTEM VERIFICATION SCRIPT
+TPS19 SYSTEM VERIFICATION SCRIPT
 Quick check to verify everything is working
 """
 
@@ -19,7 +19,7 @@ def check_files():
     check_section("CHECKING FILES")
     
     required_files = [
-        'apex_v3_integrated.py',
+        'tps19_main.py',
         'market_analysis_layer.py',
         'signal_generation_layer.py',
         'ai_ml_layer.py',
@@ -199,7 +199,7 @@ def run_quick_test():
 def main():
     """Run all verification checks"""
     print("="*60)
-    print("🔍 APEX V3 SYSTEM VERIFICATION")
+    print("🔍 TPS19 SYSTEM VERIFICATION")
     print("="*60)
     
     results = {
@@ -228,7 +228,7 @@ def main():
     if passed == total:
         print("\n✅ SYSTEM READY")
         print("\nTo start the system:")
-        print("  python3 apex_v3_integrated.py")
+        print("  python3 tps19_main.py")
         return 0
     else:
         print("\n⚠️  ISSUES FOUND - Review errors above")
