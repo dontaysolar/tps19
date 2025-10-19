@@ -1,4 +1,4 @@
-# APEX V3 - Production Dependencies
+# TPS19 - Production Dependencies
 # Generated: 2025-10-19
 
 # Core Trading
@@ -6,6 +6,11 @@ ccxt>=4.0.0              # Crypto exchange integration
 numpy>=1.24.0            # Numerical computing
 python-dotenv>=1.0.0     # Environment variable management
 requests>=2.31.0         # HTTP requests
+
+# Web Dashboard & API
+streamlit>=1.29.0        # Web dashboard (easiest option)
+flask>=3.0.0             # REST API server
+flask-cors>=4.0.0        # CORS support
 
 # System Monitoring
 psutil>=5.9.0            # Process and system utilities
