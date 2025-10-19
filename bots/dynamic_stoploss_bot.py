@@ -94,6 +94,15 @@ class DynamicStopLossBot:
             ATR value as float
         """
         try:
+            # Prefer cached ATR if it is fresh; enables deterministic testing and reduces API calls
+            if symbol in self.atr_cache:
+                cached = self.atr_cache[symbol]
+                cached_ts = cached.get('timestamp')
+                if cached_ts is not None:
+                    age_seconds = (datetime.now() - cached_ts).total_seconds()
+                    if age_seconds < 300:  # 5 minutes freshness window
+                        return float(cached.get('value', 0.0))
+
             # Fetch OHLCV data
             ohlcv = self.exchange.fetch_ohlcv(symbol, timeframe, limit=periods + 1)
             
@@ -237,7 +246,39 @@ class DynamicStopLossBot:
         
         pos = self.positions[position_id]
         
-        # Check if enough time passed since last update
+        # First: Check if stop already hit regardless of update interval
+        stop_hit = False
+        if pos['side'] == 'long' and current_price <= pos['stop_price']:
+            stop_hit = True
+        elif pos['side'] == 'short' and current_price >= pos['stop_price']:
+            stop_hit = True
+
+        if stop_hit:
+            profit = (current_price - pos['entry_price']) * pos['amount']
+            if pos['side'] == 'short':
+                profit = -profit
+            profit_pct = ((current_price - pos['entry_price']) / pos['entry_price']) * 100
+            if pos['side'] == 'short':
+                profit_pct = -profit_pct
+            self.metrics['stops_hit'] += 1
+            if profit > 0:
+                self.metrics['capital_saved'] += profit
+            close_data = {
+                'position_id': position_id,
+                'symbol': pos['symbol'],
+                'side': pos['side'],
+                'entry': pos['entry_price'],
+                'exit': current_price,
+                'amount': pos['amount'],
+                'profit': profit,
+                'profit_pct': profit_pct,
+                'reason': 'DYNAMIC_SL'
+            }
+            print(f"🛑 Stop-loss hit: {pos['symbol']}")
+            print(f"   P&L: ${profit:.2f} ({profit_pct:+.2f}%)")
+            return close_data
+
+        # If not hit, enforce update interval before recalculating
         last_update = datetime.fromisoformat(pos['last_adjusted'])
         if (datetime.now() - last_update).seconds < self.config['update_interval']:
             return None
@@ -263,43 +304,7 @@ class DynamicStopLossBot:
             
             print(f"📈 {pos['symbol']} stop adjusted: ${old_stop:.2f} → ${new_stop:.2f}")
         
-        # Check if stop hit
-        stop_hit = False
-        if pos['side'] == 'long' and current_price <= pos['stop_price']:
-            stop_hit = True
-        elif pos['side'] == 'short' and current_price >= pos['stop_price']:
-            stop_hit = True
-        
-        if stop_hit:
-            profit = (current_price - pos['entry_price']) * pos['amount']
-            if pos['side'] == 'short':
-                profit = -profit
-            
-            profit_pct = ((current_price - pos['entry_price']) / pos['entry_price']) * 100
-            if pos['side'] == 'short':
-                profit_pct = -profit_pct
-            
-            self.metrics['stops_hit'] += 1
-            if profit > 0:
-                self.metrics['capital_saved'] += profit
-            
-            close_data = {
-                'position_id': position_id,
-                'symbol': pos['symbol'],
-                'side': pos['side'],
-                'entry': pos['entry_price'],
-                'exit': current_price,
-                'amount': pos['amount'],
-                'profit': profit,
-                'profit_pct': profit_pct,
-                'reason': 'DYNAMIC_SL'
-            }
-            
-            print(f"🛑 Stop-loss hit: {pos['symbol']}")
-            print(f"   P&L: ${profit:.2f} ({profit_pct:+.2f}%)")
-            
-            return close_data
-        
+        # Re-check hit after potential adjustment on next iterations handled at function start
         return None
     
     def monitor_positions(self):
