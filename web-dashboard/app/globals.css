@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 15, 23, 42;
+  --background-end-rgb: 15, 23, 42;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .card {
+    @apply bg-slate-800 rounded-lg shadow-lg border border-slate-700 p-6;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .btn-success {
+    @apply bg-success hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .btn-danger {
+    @apply bg-danger hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .input {
+    @apply bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500;
+  }
+  
+  .badge-success {
+    @apply bg-green-500/10 text-green-400 px-2 py-1 rounded text-xs font-semibold;
+  }
+  
+  .badge-danger {
+    @apply bg-red-500/10 text-red-400 px-2 py-1 rounded text-xs font-semibold;
+  }
+  
+  .badge-warning {
+    @apply bg-yellow-500/10 text-yellow-400 px-2 py-1 rounded text-xs font-semibold;
+  }
+}

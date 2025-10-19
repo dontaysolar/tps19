@@ -45,7 +45,10 @@ class BotRegistry:
         discovered = []
         
         # Get all .py files in bots directory
-        bots_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), bots_dir)
+        if os.path.isabs(bots_dir):
+            bots_path = bots_dir
+        else:
+            bots_path = os.path.join(os.getcwd(), bots_dir)
         
         if not os.path.exists(bots_path):
             return {'discovered': 0, 'error': f'Bots directory not found: {bots_path}'}
@@ -188,10 +191,13 @@ if __name__ == '__main__':
     print("🎯 APEX Bot Registry v2.0.0\n")
     
     result = registry.auto_discover_bots()
-    print(f"✅ Discovered {result['discovered']} bots")
-    print(f"📊 Total registered: {result['total_registered']}")
+    print(f"✅ Discovered {result.get('discovered', 0)} bots")
+    print(f"📊 Total registered: {len(registry.bots)}")
     
-    status = registry.get_registry_status()
-    print(f"\n📋 Categories:")
-    for cat, count in status['categories'].items():
-        print(f"  {cat}: {count} bots")
+    if result.get('discovered', 0) > 0:
+        status = registry.get_registry_status()
+        print(f"\n📋 Categories:")
+        for cat, count in status['categories'].items():
+            print(f"  {cat}: {count} bots")
+    else:
+        print("\n⚠️  No bots discovered. Check bots/ directory.")
