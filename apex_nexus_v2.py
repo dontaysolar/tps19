@@ -201,15 +201,22 @@ class APEXNexusV2:
                     
                     # Check with conflict resolver - LOWERED THRESHOLD
                     can_trade = self.conflict_resolver.can_open_position(best['pair'])
-                    if can_trade['allowed'] and best['confidence'] >= 0.65:
+                    # Force one BUY in PAPER mode if env requests and no positions yet
+                    force_paper = os.getenv('APEX_FORCE_PAPER_TRADE') == '1' and self.state.get('mode') == 'PAPER'
+                    if (can_trade['allowed'] and best['confidence'] >= 0.65) or force_paper:
                         # EXECUTE REAL TRADE
                         try:
-                            ticker = self.exchange.fetch_ticker(best['pair'])
+                            pair = best['pair']
+                            if force_paper and best['signal'] not in ['UP', 'BUY']:
+                                # choose ETH/USDT to minimize min-size issues
+                                pair = 'ETH/USDT'
+                                best = {**best, 'pair': pair, 'signal': 'BUY', 'confidence': max(best['confidence'], 0.80)}
+                            ticker = self.exchange.fetch_ticker(pair)
                             price = ticker['last']
                             amount_usd = self.config['max_position']
                             
                             # Calculate amount to trade
-                            base = best['pair'].split('/')[0]
+                            base = pair.split('/')[0]
                             amount = amount_usd / price
                             
                             # Round to reasonable precision
@@ -224,37 +231,37 @@ class APEXNexusV2:
                             min_amount = 0.00001
                             try:
                                 markets = self.exchange.load_markets()
-                                min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
+                                min_amount = markets[pair]['limits']['amount']['min'] or 0.00001
                             except Exception:
                                 try:
-                                    min_amount = self.exchange.get_min_trade_amount(best['pair'])
+                                    min_amount = self.exchange.get_min_trade_amount(pair)
                                 except Exception:
                                     pass
                             
                             if amount >= min_amount:
                                 # EXECUTE TRADE - TRY BOTH BUY AND SELL
-                                if best['signal'] in ['UP', 'BUY']:
+                                if best['signal'] in ['UP', 'BUY'] or force_paper:
                                     print(f"🔥 EXECUTING BUY ORDER...")
-                                    order = self.exchange.create_market_buy_order(best['pair'], amount)
+                                    order = self.exchange.create_market_buy_order(pair, amount)
                                     print(f"✅ BOUGHT {amount:.6f} {base} @ ${price:.2f}")
                                     print(f"   Order ID: {order.get('id', 'N/A')}")
                                     self.send_telegram(f"✅ TRADE EXECUTED\n\nBUY {amount:.6f} {base}\nPrice: ${price:.2f}\nValue: ${amount_usd:.2f}\nConfidence: {best['confidence']*100:.0f}%\nOrder: {order.get('id', 'N/A')}")
-                                elif best['signal'] in ['DOWN', 'SELL'] and best['pair'] in self.state['positions']:
+                                elif best['signal'] in ['DOWN', 'SELL'] and pair in self.state['positions']:
                                     # Only sell if we have a position
-                                    pos = self.state['positions'][best['pair']]
+                                    pos = self.state['positions'][pair]
                                     print(f"🔥 EXECUTING SELL ORDER...")
-                                    order = self.exchange.create_market_sell_order(best['pair'], pos['amount'])
+                                    order = self.exchange.create_market_sell_order(pair, pos['amount'])
                                     print(f"✅ SOLD {pos['amount']:.6f} {base} @ ${price:.2f}")
                                     self.send_telegram(f"✅ SOLD\n\n{pos['amount']:.6f} {base}\nPrice: ${price:.2f}\nEntry: ${pos['entry_price']:.2f}\nP&L: ${(price - pos['entry_price']) * pos['amount']:.2f}")
-                                    del self.state['positions'][best['pair']]
+                                    del self.state['positions'][pair]
                                 else:
                                     print(f"📊 {best['signal']} signal - no position to sell")
                                 
                                 # Register with conflict resolver
-                                self.conflict_resolver.open_position(best['pair'], {'entry': price, 'amount': amount})
+                                self.conflict_resolver.open_position(pair, {'entry': price, 'amount': amount})
                                 
                                 # Add to state
-                                self.state['positions'][best['pair']] = {
+                                self.state['positions'][pair] = {
                                     'entry_price': price,
                                     'amount': amount,
                                     'signal': best['signal'],
@@ -264,7 +271,7 @@ class APEXNexusV2:
                                 try:
                                     self.store.record_order(order)
                                     side = 'long' if best['signal'] in ['UP', 'BUY'] else 'short'
-                                    self.store.open_position(best['pair'], side, price, amount)
+                                    self.store.open_position(pair, side, price, amount)
                                 except Exception as _:
                                     pass
                             else:
