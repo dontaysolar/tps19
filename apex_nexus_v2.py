@@ -28,6 +28,8 @@ from sentiment_analyzer import SentimentAnalyzer
 from enhanced_notifications import EnhancedNotifications
 
 import ccxt
+from modules.trading_engine import PaperExchangeAdapter
+from modules.trade_store import TradeStore
 
 def get_exchange_credentials():
     """Fetch exchange API credentials from environment with common fallbacks."""
@@ -75,26 +77,34 @@ class APEXNexusV2:
         print("🚀 APEX NEXUS V2.0 - PRODUCTION SYSTEM")
         print("="*80)
         
-        # Initialize exchange
+        # Initialize exchange with PAPER fallback on auth failure
         api_key, api_secret = get_exchange_credentials()
+        use_paper = False
         if not api_key or not api_secret:
-            raise RuntimeError('Missing Crypto.com API credentials in environment')
-
-        self.exchange = ccxt.cryptocom({
-            'apiKey': api_key,
-            'secret': api_secret,
-            'enableRateLimit': True
-        })
-        self.exchange.timeout = 10000  # 10s safety timeout
-
-        # Authenticated health check with Telegram reporting
-        try:
-            _ = self.exchange.fetch_balance()
-            print("✅ Exchange authentication verified")
-        except Exception as auth_err:
-            print(f"❌ Exchange authentication error: {auth_err}")
+            use_paper = True
+        else:
             try:
-                self.send_telegram(f"⚠️ Crypto.com auth error: {str(auth_err)[:120]}")
+                self.exchange = ccxt.cryptocom({
+                    'apiKey': api_key,
+                    'secret': api_secret,
+                    'enableRateLimit': True
+                })
+                self.exchange.timeout = 10000  # 10s safety timeout
+                _ = self.exchange.fetch_balance()
+                print("✅ Exchange authentication verified")
+            except Exception as auth_err:
+                print(f"❌ Exchange authentication error: {auth_err}")
+                use_paper = True
+                try:
+                    self.send_telegram("⚠️ Crypto.com auth error. Falling back to PAPER mode.")
+                except Exception:
+                    pass
+
+        if use_paper:
+            public = ccxt.cryptocom({'enableRateLimit': True})
+            self.exchange = PaperExchangeAdapter(public_exchange=public, base_currency='USDT', initial_balances={'USDT': 1000.0})
+            try:
+                self.exchange.load_markets()
             except Exception:
                 pass
         
@@ -127,6 +137,7 @@ class APEXNexusV2:
         }
         
         self.state = {'trading_enabled': True, 'positions': {}, 'cycle': 0}
+        self.store = TradeStore('data/trading.db')
         
         print(f"✅ ALL SYSTEMS INITIALIZED\n")
         self.send_telegram("✅ APEX NEXUS V2.0 ONLINE\n\nAll 51 bots loaded\nStarting autonomous trading...")
@@ -208,8 +219,15 @@ class APEXNexusV2:
                                 amount = round(amount, 2)
                             
                             # Check minimum
-                            markets = self.exchange.load_markets()
-                            min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
+                            min_amount = 0.00001
+                            try:
+                                markets = self.exchange.load_markets()
+                                min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
+                            except Exception:
+                                try:
+                                    min_amount = self.exchange.get_min_trade_amount(best['pair'])
+                                except Exception:
+                                    pass
                             
                             if amount >= min_amount:
                                 # EXECUTE TRADE - TRY BOTH BUY AND SELL
@@ -240,6 +258,13 @@ class APEXNexusV2:
                                     'signal': best['signal'],
                                     'time': datetime.now().isoformat()
                                 }
+                                # Persist order and position
+                                try:
+                                    self.store.record_order(order)
+                                    side = 'long' if best['signal'] in ['UP', 'BUY'] else 'short'
+                                    self.store.open_position(best['pair'], side, price, amount)
+                                except Exception as _:
+                                    pass
                             else:
                                 print(f"⚠️ Amount {amount:.6f} below minimum {min_amount}")
                         

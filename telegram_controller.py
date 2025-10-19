@@ -188,6 +188,19 @@ AI Models: {ai_emoji} {'ON' if self.status['ai_enabled'] else 'OFF'}
 _Last updated: {self.status.get('last_update', 'Never')}_
 """
         self.send_message(text)
+
+        # Show open positions from trade store if available
+        try:
+            from modules.trade_store import TradeStore
+            store = TradeStore('data/trading.db')
+            positions = store.list_positions()
+            if positions:
+                lines = ["\n📌 *Open Positions*:"]
+                for p in positions:
+                    lines.append(f"• {p['symbol']} {p['side']} {p['amount']:.6f} @ ${p['entry_price']:.2f}")
+                self.send_message("\n".join(lines))
+        except Exception:
+            pass
     
     def cmd_balance(self):
         """Show balance info"""
