@@ -44,6 +44,13 @@ try:
         from strategies import FoxModeStrategy, MarketMakerStrategy, ArbitrageKingStrategy
     except Exception:
         FoxModeStrategy = MarketMakerStrategy = ArbitrageKingStrategy = None  # type: ignore
+    try:
+        from paper_trading import PaperTradingEngine
+        from order_executor import OrderExecutor, ExecutorConfig
+    except Exception:
+        PaperTradingEngine = None  # type: ignore
+        OrderExecutor = None  # type: ignore
+        ExecutorConfig = None  # type: ignore
     print("✅ Phase 1 AI/ML modules imported successfully")
     PHASE1_AVAILABLE = True
 except ImportError as e:
@@ -145,6 +152,27 @@ class TPS19UnifiedSystem:
                     print("⚠️ WebSocket Feeds not available (optional)")
             except Exception as e:
                 print(f"⚠️ WebSocket Feeds initialization failed (optional): {e}")
+            
+            # Initialize Order Executor
+            try:
+                trading_mode = os.environ.get('TRADING_MODE', 'paper').lower()
+                min_amount = float(os.environ.get('MIN_ORDER_AMOUNT', '0.0') or 0.0)
+                paper_engine = None
+                if trading_mode == 'paper' and 'PaperTradingEngine' in globals() and PaperTradingEngine:
+                    start_balance = float(os.environ.get('PAPER_START_BALANCE', '100') or 100)
+                    paper_engine = PaperTradingEngine(starting_balance=start_balance)
+                if 'OrderExecutor' in globals() and OrderExecutor and 'ExecutorConfig' in globals() and ExecutorConfig:
+                    self.order_executor = OrderExecutor(
+                        ExecutorConfig(mode=trading_mode, min_amount=min_amount),
+                        exchange=None,
+                        paper_engine=paper_engine,
+                    )
+                    self.system_components['order_executor'] = self.order_executor
+                    print(f"✅ Order Executor initialized (mode={trading_mode})")
+                else:
+                    print("⚠️ Order Executor not available")
+            except Exception as e:
+                print(f"⚠️ Order Executor initialization failed (optional): {e}")
             
             # Initialize Redis (optional)
             try:
@@ -358,6 +386,24 @@ class TPS19UnifiedSystem:
                                 'confidence': transformer_pred.get('confidence')
                             }
                         n8n_integration.send_trade_signal(payload)
+
+                        # Execute via central executor (paper by default)
+                        try:
+                            if hasattr(self, 'order_executor'):
+                                pair = test_data['symbol'].replace('_', '/')
+                                base = pair.split('/')[0]
+                                amount_usd = float(os.environ.get('MAX_POSITION_USD', '1.0') or 1.0)
+                                price_f = float(test_data['price'])
+                                trade_amount = amount_usd / price_f if price_f > 0 else 0.0
+                                if decision['decision'].lower() in ['buy', 'up']:
+                                    res = self.order_executor.execute_buy(pair, trade_amount, price_hint=price_f)
+                                elif decision['decision'].lower() in ['sell', 'down']:
+                                    res = self.order_executor.execute_sell(pair, trade_amount, price_hint=price_f)
+                                else:
+                                    res = {'status': 'skipped'}
+                                print(f"🛠️ OrderExecutor result: {res.get('status')}")
+                        except Exception as e:
+                            print(f"⚠️ Order execution error: {e}")
                         
                 print(f"💓 TPS19 Unified System - {datetime.now()}")
                 print(f"🧠 SIUL Decision: {siul_result.get('final_decision', {}).get('decision', 'hold')}")
