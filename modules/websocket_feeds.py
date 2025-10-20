@@ -9,6 +9,7 @@ gracefully degrade to a no-op.
 from __future__ import annotations
 
 import threading
+import time
 from typing import Callable, Optional
 
 try:
@@ -23,6 +24,7 @@ class WebSocketFeeds:
     def __init__(self) -> None:
         self._threads = []
         self.available = _WS_AVAILABLE
+        self._stop = False
 
     def subscribe_generic(self, url: str, on_message: Callable[[str], None]) -> Optional[threading.Thread]:
         """Subscribe to a generic WebSocket URL and invoke callback on messages.
@@ -45,8 +47,17 @@ class WebSocketFeeds:
             print(f"🔌 WebSocket closed: {code} {msg}")
 
         def _run():
-            app = WebSocketApp(url, on_message=_on_message, on_error=_on_error, on_close=_on_close)
-            app.run_forever()
+            backoff = 1.0
+            while not self._stop:
+                try:
+                    app = WebSocketApp(url, on_message=_on_message, on_error=_on_error, on_close=_on_close)
+                    app.run_forever()
+                except Exception as e:  # pragma: no cover
+                    print(f"❌ WS run error: {e}")
+                if self._stop:
+                    break
+                time.sleep(backoff)
+                backoff = min(backoff * 2, 30.0)
 
         thread = threading.Thread(target=_run, daemon=True)
         thread.start()
@@ -56,4 +67,5 @@ class WebSocketFeeds:
 
     def close(self) -> None:
         # Best-effort; threads will exit when WS closes or process ends.
+        self._stop = True
         print("🔌 Closing WebSocket feeds (best-effort)")
