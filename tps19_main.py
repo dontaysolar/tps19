@@ -36,6 +36,11 @@ try:
     from strategy_hub import StrategyHub
     from compliance import ComplianceGate
     from env_validation import print_validation_summary, ensure_mode_requirements_or_exit
+    # Market data fallback
+    try:
+        from market.market_feed import market_feed
+    except Exception:
+        market_feed = None  # type: ignore
     try:
         from websocket_feeds import WebSocketFeeds
     except Exception:
@@ -188,12 +193,14 @@ class TPS19UnifiedSystem:
                         redis_db = int((parsed.path or '/0').lstrip('/'))
                     except Exception:
                         redis_db = 0
+                    use_ssl = (parsed.scheme or '').lower() == 'rediss'
                 else:
                     redis_host = os.environ.get('REDIS_HOST', 'localhost')
                     redis_port = int(os.environ.get('REDIS_PORT', '6379') or 6379)
                     redis_db = int(os.environ.get('REDIS_DB', '0') or 0)
                     redis_password = os.environ.get('REDIS_PASSWORD')
-                self.redis = RedisIntegration(host=redis_host, port=redis_port, db=redis_db, password=redis_password)
+                    use_ssl = os.environ.get('REDIS_USE_SSL', 'false').lower() in ('1', 'true', 'yes')
+                self.redis = RedisIntegration(host=redis_host, port=redis_port, db=redis_db, password=redis_password, use_ssl=use_ssl)
                 if self.redis.connected:
                     self.system_components['redis'] = self.redis
                     print("✅ Redis connected")
@@ -266,11 +273,28 @@ class TPS19UnifiedSystem:
             while self.running:
                 # Market data source (avoid synthetic test data)
                 symbol = os.environ.get('DEFAULT_SYMBOL', 'BTC_USDT')
-                price_env = os.environ.get('LAST_PRICE')
-                try:
-                    price_val = float(price_env) if price_env else (self._price_history[-1] if self._price_history else None)
-                except Exception:
-                    price_val = None
+                price_val = None
+                # Prefer WS history
+                if self._price_history:
+                    try:
+                        price_val = float(self._price_history[-1])
+                    except Exception:
+                        price_val = None
+                # Fallback: REST market feed
+                if price_val is None and market_feed is not None:
+                    try:
+                        data = market_feed.get_latest_data(symbol, 1)
+                        if data:
+                            price_val = float(data[0]['close'])
+                    except Exception:
+                        price_val = None
+                # Final fallback: env LAST_PRICE
+                if price_val is None:
+                    price_env = os.environ.get('LAST_PRICE')
+                    try:
+                        price_val = float(price_env) if price_env else None
+                    except Exception:
+                        price_val = None
                 if price_val is None:
                     print("⚠️ No market data available yet. Waiting for feed...")
                     time.sleep(5)
