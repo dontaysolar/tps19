@@ -15,6 +15,7 @@ except Exception:
     pass
 
 sys.path.insert(0, 'bots')
+sys.path.insert(0, 'modules')
 
 # Import ALL operational bots
 from god_bot import GODBot
@@ -31,16 +32,20 @@ from sentiment_analyzer import SentimentAnalyzer
 from enhanced_notifications import EnhancedNotifications
 
 import ccxt
+from compliance import ComplianceGate
+from env_validation import ensure_mode_requirements_or_exit
 
 class APEXNexusV2:
     def __init__(self):
         print("🚀 APEX NEXUS V2.0 - PRODUCTION SYSTEM")
         print("="*80)
         
-        # Initialize exchange or paper trading
-        self.paper_enabled = os.environ.get('PAPER_TRADING', 'true').lower() in ('1', 'true', 'yes')
+        # Initialize trading mode
+        trading_mode = os.environ.get('TRADING_MODE', 'paper').lower()
+        ensure_mode_requirements_or_exit(trading_mode)
+        self.paper_enabled = trading_mode != 'real'
         self.paper_balance = float(os.environ.get('PAPER_START_BALANCE', '100') or 100)
-        if not self.paper_enabled:
+        if trading_mode == 'real':
             self.exchange = ccxt.cryptocom({
                 'apiKey': os.environ.get('EXCHANGE_API_KEY', ''),
                 'secret': os.environ.get('EXCHANGE_API_SECRET', ''),
@@ -50,6 +55,9 @@ class APEXNexusV2:
             # Use public client for market data even in paper mode
             self.exchange = ccxt.cryptocom({'enableRateLimit': True})
             self.paper_state = {'balance': self.paper_balance, 'positions': {}}
+        
+        # Compliance gate
+        self.compliance_gate = ComplianceGate()
         
         # Initialize all bots
         print("Loading God-Level AI...")
@@ -86,9 +94,14 @@ class APEXNexusV2:
     
     def send_telegram(self, msg):
         try:
-            requests.post(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage",
-                         json={'chat_id': os.environ['TELEGRAM_CHAT_ID'], 'text': msg}, timeout=5)
-        except: pass
+            token = os.environ.get('TELEGRAM_BOT_TOKEN')
+            chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+            if not token or not chat_id:
+                return
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
+                         json={'chat_id': chat_id, 'text': msg}, timeout=5)
+        except:
+            pass
     
     def run(self):
         print("Starting autonomous trading cycle...\n")
@@ -168,6 +181,11 @@ class APEXNexusV2:
                                 min_amount = 0.00001
                             
                             if amount >= min_amount:
+                                # Compliance check
+                                gate = self.compliance_gate.can_trade(self.state, signal_confidence=float(best['confidence']), notional_value=float(amount_usd))
+                                if not gate.get('allow', True):
+                                    print(f"🛂 Trade blocked by compliance: {gate.get('reason')}")
+                                    continue
                                 # EXECUTE TRADE - TRY BOTH BUY AND SELL
                                 if best['signal'] in ['UP', 'BUY']:
                                     print(f"🔥 EXECUTING BUY ORDER...")
