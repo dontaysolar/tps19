@@ -6,13 +6,10 @@ ZERO mock data, ZERO tolerance for errors
 """
 import os, sys, time, json, requests
 from datetime import datetime
+from dotenv import load_dotenv
 
-# Load environment
-with open('.env') as f:
-    for line in f:
-        if '=' in line and not line.startswith('#'):
-            k,v = line.strip().split('=',1)
-            os.environ[k] = v
+# AEGIS v2.0 Security: Use standard dotenv library instead of custom parser
+load_dotenv()
 
 sys.path.insert(0, 'bots')
 
