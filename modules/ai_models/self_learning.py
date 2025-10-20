@@ -134,6 +134,28 @@ class SelfLearningPipeline:
         # Trigger learning if buffer is full
         if len(self.feedback_buffer) >= self.config['min_samples_for_learning']:
             self.learn_from_feedback()
+
+    def record_outcome_event(self, event: Dict):
+        """Ingest outcome event from planner/execution for later learning.
+
+        Expected keys: strategy, parameters, profit, win_rate, trades_count, regime
+        """
+        try:
+            self.record_performance(
+                strategy=event.get('strategy', 'unknown'),
+                parameters=event.get('parameters', {}),
+                performance={
+                    'profit': event.get('profit', 0.0),
+                    'win_rate': event.get('win_rate', 0.0),
+                    'sharpe_ratio': event.get('sharpe_ratio'),
+                    'max_drawdown': event.get('max_drawdown'),
+                    'trades_count': event.get('trades_count', 0),
+                },
+                market_conditions={'regime': event.get('regime', 'unknown')}
+            )
+        except Exception:
+            # Non-blocking; learning is best-effort
+            pass
             
     def learn_from_feedback(self):
         """Learn from accumulated feedback and adapt strategies"""

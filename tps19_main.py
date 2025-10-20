@@ -117,14 +117,34 @@ class TPS19UnifiedSystem:
 
                 decision = siul_result.get('final_decision', {})
 
-                # Act: route to N8N if confidence high
-                if decision.get('confidence', 0) > 0.7:
-                    n8n_integration.send_trade_signal({
-                        'symbol': perceived.get('symbol', 'BTC_USDT'),
-                        'action': decision.get('decision', 'hold'),
-                        'price': perceived.get('price', 0),
-                        'confidence': decision.get('confidence', 0)
-                    })
+                # Act: risk gate + route to N8N if confidence high
+                action = decision.get('decision', 'hold')
+                confidence = decision.get('confidence', 0)
+                if action in ('buy', 'sell') and confidence > 0.7:
+                    try:
+                        from risk_management import RiskManager
+                        risk = RiskManager()
+                        # Assume nominal portfolio value when unknown
+                        portfolio_value = float(os.getenv('PORTFOLIO_USD', '1000'))
+                        amt = float(os.getenv('DEFAULT_TRADE_AMOUNT', '0.001'))
+                        price = perceived.get('price', 0) or 0
+                        gate = risk.pre_trade_gate(portfolio_value, {
+                            'symbol': perceived.get('symbol', 'BTC_USDT'),
+                            'side': action,
+                            'price': price,
+                            'amount': amt,
+                        })
+                        if gate.get('allowed'):
+                            n8n_integration.send_trade_signal({
+                                'symbol': perceived.get('symbol', 'BTC_USDT'),
+                                'action': action,
+                                'price': price,
+                                'confidence': confidence
+                            })
+                        else:
+                            print(f"⚠️ Trade blocked by risk gate: {gate.get('reasons')}")
+                    except Exception as e:
+                        print(f"⚠️ Risk gate error: {e}")
 
                 # Learn: placeholder hook (self-learning modules consume logs/db)
                 # In future, push feedback events here
