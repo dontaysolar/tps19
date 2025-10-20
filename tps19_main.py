@@ -34,6 +34,7 @@ try:
     from risk_management import RiskManager
     from nexus_coordinator import NexusCoordinator
     from strategy_hub import StrategyHub
+    from compliance import ComplianceGate
     from env_validation import print_validation_summary
     try:
         from websocket_feeds import WebSocketFeeds
@@ -116,6 +117,14 @@ class TPS19UnifiedSystem:
                 print("✅ Strategy Hub initialized")
             except Exception as e:
                 print(f"⚠️ Strategy Hub initialization failed (optional): {e}")
+
+            # Initialize Compliance Gate
+            try:
+                self.compliance_gate = ComplianceGate()
+                self.system_components['compliance'] = self.compliance_gate
+                print("✅ Compliance Gate initialized")
+            except Exception as e:
+                print(f"⚠️ Compliance Gate initialization failed (optional): {e}")
 
             # Initialize advanced strategies (optional)
             try:
@@ -303,6 +312,14 @@ class TPS19UnifiedSystem:
                     
                     # Send to N8N if significant decision
                     if decision.get('confidence', 0) > 0.7:
+                        # Compliance gating
+                        try:
+                            gate = self.compliance_gate.can_trade(self.state if hasattr(self, 'state') else {}, float(decision.get('confidence', 0.0))) if hasattr(self, 'compliance_gate') else {'allow': True}
+                            if not gate.get('allow', True):
+                                print(f"🛂 Trade blocked by compliance: {gate.get('reason')}")
+                                continue
+                        except Exception as e:
+                            print(f"⚠️ Compliance check failed (allowing): {e}")
                         payload = {
                             'symbol': test_data['symbol'],
                             'action': decision['decision'],
