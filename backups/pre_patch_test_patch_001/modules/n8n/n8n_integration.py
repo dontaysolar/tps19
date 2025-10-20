@@ -8,8 +8,14 @@ from typing import Dict, List, Any, Optional
 class TPS19N8NIntegration:
     """Complete N8N Integration for TPS19"""
     
-    def __init__(self, config_path='/opt/tps19/config/n8n_config.json'):
+    def __init__(self, config_path=None):
+        # Use dynamic path based on current working directory or script location
+        if config_path is None:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            config_path = os.path.join(base_dir, 'config', 'n8n_config.json')
+        
         self.config_path = config_path
+        self.base_dir = os.path.dirname(os.path.dirname(self.config_path))
         self.n8n_url = 'http://localhost:5678'
         self.webhook_endpoints = {}
         self.active_workflows = {}
@@ -223,7 +229,9 @@ class TPS19N8NIntegration:
                 
             # Start N8N service
             print("🚀 Starting N8N service...")
-            os.system("nohup n8n start > /opt/tps19/logs/n8n.log 2>&1 &")
+            log_path = os.path.join(self.base_dir, 'logs', 'n8n.log')
+            os.makedirs(os.path.dirname(log_path), exist_ok=True)
+            os.system(f"nohup n8n start > {log_path} 2>&1 &")
             
             # Wait for startup
             time.sleep(10)

@@ -8,11 +8,20 @@ from typing import Dict, List, Any, Optional
 class TPS19PatchManager:
     """Complete Patching and Rollback System"""
     
-    def __init__(self, db_path='/opt/tps19/data/patch_manager.db'):
+    def __init__(self, db_path=None):
+        # Use dynamic path based on current working directory or script location
+        if db_path is None:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            db_path = os.path.join(base_dir, 'data', 'patch_manager.db')
+            self.patches_dir = os.path.join(base_dir, 'patches')
+            self.backups_dir = os.path.join(base_dir, 'backups')
+            self.system_dir = base_dir
+        else:
+            self.patches_dir = os.path.join(os.path.dirname(db_path), '..', 'patches')
+            self.backups_dir = os.path.join(os.path.dirname(db_path), '..', 'backups')
+            self.system_dir = os.path.dirname(os.path.dirname(db_path))
+        
         self.db_path = db_path
-        self.patches_dir = '/opt/tps19/patches'
-        self.backups_dir = '/opt/tps19/backups'
-        self.system_dir = '/opt/tps19'
         self.exchange = 'crypto.com'
         
         self._init_database()
@@ -22,46 +31,44 @@ class TPS19PatchManager:
         """Initialize patch management database"""
         try:
             os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Patches table
-            cursor.execute("""CREATE TABLE IF NOT EXISTS patches (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                patch_id TEXT UNIQUE NOT NULL,
-                version TEXT NOT NULL,
-                description TEXT NOT NULL,
-                patch_data TEXT NOT NULL,
-                status TEXT DEFAULT 'pending',
-                applied_at DATETIME,
-                rollback_data TEXT,
-                exchange TEXT DEFAULT 'crypto.com',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+            with sqlite3.connect(self.db_path, timeout=30) as conn:
+                cursor = conn.cursor()
+                # Patches table
+                cursor.execute("""CREATE TABLE IF NOT EXISTS patches (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    patch_id TEXT UNIQUE NOT NULL,
+                    version TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    patch_data TEXT NOT NULL,
+                    status TEXT DEFAULT 'pending',
+                    applied_at DATETIME,
+                    rollback_data TEXT,
+                    exchange TEXT DEFAULT 'crypto.com',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
                 
-            # Rollback history table
-            cursor.execute("""CREATE TABLE IF NOT EXISTS rollback_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                rollback_id TEXT UNIQUE NOT NULL,
-                patch_id TEXT NOT NULL,
-                reason TEXT NOT NULL,
-                success BOOLEAN NOT NULL,
-                rollback_data TEXT NOT NULL,
-                exchange TEXT DEFAULT 'crypto.com',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+                # Rollback history table
+                cursor.execute("""CREATE TABLE IF NOT EXISTS rollback_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    rollback_id TEXT UNIQUE NOT NULL,
+                    patch_id TEXT NOT NULL,
+                    reason TEXT NOT NULL,
+                    success BOOLEAN NOT NULL,
+                    rollback_data TEXT NOT NULL,
+                    exchange TEXT DEFAULT 'crypto.com',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
                 
-            # System versions table
-            cursor.execute("""CREATE TABLE IF NOT EXISTS system_versions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                version_id TEXT UNIQUE NOT NULL,
-                version_number TEXT NOT NULL,
-                system_state TEXT NOT NULL,
-                backup_path TEXT NOT NULL,
-                is_current BOOLEAN DEFAULT 0,
-                exchange TEXT DEFAULT 'crypto.com',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+                # System versions table
+                cursor.execute("""CREATE TABLE IF NOT EXISTS system_versions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    version_id TEXT UNIQUE NOT NULL,
+                    version_number TEXT NOT NULL,
+                    system_state TEXT NOT NULL,
+                    backup_path TEXT NOT NULL,
+                    is_current BOOLEAN DEFAULT 0,
+                    exchange TEXT DEFAULT 'crypto.com',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
                 
-            conn.commit()
-            conn.close()
+                conn.commit()
             print("✅ Patch Manager database initialized")
             
         except Exception as e:
@@ -190,13 +197,11 @@ class TPS19PatchManager:
         """Rollback a specific patch"""
         try:
             # Get patch information
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute("SELECT rollback_data FROM patches WHERE patch_id = ? AND exchange = 'crypto.com'", 
-                          (patch_id,))
-            result = cursor.fetchone()
-            conn.close()
+            with sqlite3.connect(self.db_path, timeout=30) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT rollback_data FROM patches WHERE patch_id = ? AND exchange = 'crypto.com'", 
+                              (patch_id,))
+                result = cursor.fetchone()
             
             if not result:
                 print(f"❌ Patch {patch_id} not found")
@@ -222,11 +227,10 @@ class TPS19PatchManager:
                         os.remove(file_path)
                         
             # Update patch status
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute("UPDATE patches SET status = 'rolled_back' WHERE patch_id = ?", (patch_id,))
-            conn.commit()
-            conn.close()
+            with sqlite3.connect(self.db_path, timeout=30) as conn:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE patches SET status = 'rolled_back' WHERE patch_id = ?", (patch_id,))
+                conn.commit()
             
             # Store rollback history
             self._store_rollback(rollback_id, patch_id, "Manual rollback", True, rollback_data)
@@ -304,18 +308,15 @@ class TPS19PatchManager:
     def _store_patch(self, patch_id: str, patch_data: Dict[str, Any], rollback_data: List[Dict[str, Any]], status: str):
         """Store patch information"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute("""INSERT OR REPLACE INTO patches 
-                (patch_id, version, description, patch_data, status, applied_at, rollback_data, exchange)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                (patch_id, patch_data.get('version', '1.0'), patch_data.get('description', 'No description'),
-                 json.dumps(patch_data), status, datetime.now().isoformat(), 
-                 json.dumps(rollback_data), 'crypto.com'))
-                 
-            conn.commit()
-            conn.close()
+            with sqlite3.connect(self.db_path, timeout=30) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""INSERT OR REPLACE INTO patches 
+                    (patch_id, version, description, patch_data, status, applied_at, rollback_data, exchange)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (patch_id, patch_data.get('version', '1.0'), patch_data.get('description', 'No description'),
+                     json.dumps(patch_data), status, datetime.now().isoformat(), 
+                     json.dumps(rollback_data), 'crypto.com'))
+                conn.commit()
             
         except Exception as e:
             print(f"❌ Patch storage failed: {e}")
@@ -323,16 +324,13 @@ class TPS19PatchManager:
     def _store_rollback(self, rollback_id: str, patch_id: str, reason: str, success: bool, rollback_data: Any):
         """Store rollback information"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute("""INSERT INTO rollback_history 
-                (rollback_id, patch_id, reason, success, rollback_data, exchange)
-                VALUES (?, ?, ?, ?, ?, ?)""",
-                (rollback_id, patch_id, reason, success, json.dumps(rollback_data), 'crypto.com'))
-                 
-            conn.commit()
-            conn.close()
+            with sqlite3.connect(self.db_path, timeout=30) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""INSERT INTO rollback_history 
+                    (rollback_id, patch_id, reason, success, rollback_data, exchange)
+                    VALUES (?, ?, ?, ?, ?, ?)""",
+                    (rollback_id, patch_id, reason, success, json.dumps(rollback_data), 'crypto.com'))
+                conn.commit()
             
         except Exception as e:
             print(f"❌ Rollback storage failed: {e}")
@@ -340,20 +338,26 @@ class TPS19PatchManager:
     def _store_system_version(self, version_id: str, version_number: str, system_state: Dict[str, Any], backup_path: str):
         """Store system version information"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Mark all versions as not current
-            cursor.execute("UPDATE system_versions SET is_current = 0")
-            
-            # Insert new version as current
-            cursor.execute("""INSERT INTO system_versions 
-                (version_id, version_number, system_state, backup_path, is_current, exchange)
-                VALUES (?, ?, ?, ?, 1, ?)""",
-                (version_id, version_number, json.dumps(system_state), backup_path, 'crypto.com'))
-                 
-            conn.commit()
-            conn.close()
+            with sqlite3.connect(self.db_path, timeout=30) as conn:
+                cursor = conn.cursor()
+                # Mark all versions as not current
+                cursor.execute("UPDATE system_versions SET is_current = 0")
+                # Upsert new version as current
+                cursor.execute(
+                    """
+                    INSERT INTO system_versions 
+                        (version_id, version_number, system_state, backup_path, is_current, exchange)
+                    VALUES (?, ?, ?, ?, 1, ?)
+                    ON CONFLICT(version_id) DO UPDATE SET
+                        version_number=excluded.version_number,
+                        system_state=excluded.system_state,
+                        backup_path=excluded.backup_path,
+                        is_current=1,
+                        exchange=excluded.exchange
+                    """,
+                    (version_id, version_number, json.dumps(system_state), backup_path, 'crypto.com')
+                )
+                conn.commit()
             
         except Exception as e:
             print(f"❌ Version storage failed: {e}")
@@ -361,26 +365,20 @@ class TPS19PatchManager:
     def get_patch_status(self) -> Dict[str, Any]:
         """Get patch system status"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Total patches
-            cursor.execute("SELECT COUNT(*) FROM patches WHERE exchange = 'crypto.com'")
-            total_patches = cursor.fetchone()[0]
-            
-            # Applied patches
-            cursor.execute("SELECT COUNT(*) FROM patches WHERE status = 'applied' AND exchange = 'crypto.com'")
-            applied_patches = cursor.fetchone()[0]
-            
-            # Rollbacks
-            cursor.execute("SELECT COUNT(*) FROM rollback_history WHERE exchange = 'crypto.com'")
-            total_rollbacks = cursor.fetchone()[0]
-            
-            # System versions
-            cursor.execute("SELECT COUNT(*) FROM system_versions WHERE exchange = 'crypto.com'")
-            total_versions = cursor.fetchone()[0]
-            
-            conn.close()
+            with sqlite3.connect(self.db_path, timeout=30) as conn:
+                cursor = conn.cursor()
+                # Total patches
+                cursor.execute("SELECT COUNT(*) FROM patches WHERE exchange = 'crypto.com'")
+                total_patches = cursor.fetchone()[0]
+                # Applied patches
+                cursor.execute("SELECT COUNT(*) FROM patches WHERE status = 'applied' AND exchange = 'crypto.com'")
+                applied_patches = cursor.fetchone()[0]
+                # Rollbacks
+                cursor.execute("SELECT COUNT(*) FROM rollback_history WHERE exchange = 'crypto.com'")
+                total_rollbacks = cursor.fetchone()[0]
+                # System versions
+                cursor.execute("SELECT COUNT(*) FROM system_versions WHERE exchange = 'crypto.com'")
+                total_versions = cursor.fetchone()[0]
             
             return {
                 'total_patches': total_patches,
@@ -406,8 +404,8 @@ class TPS19PatchManager:
             if not backup_id:
                 return False
                 
-            # Step 2: Create test file
-            test_file = '/opt/tps19/test_patch_file.txt'
+            # Step 2: Create test file in current system directory to avoid absolute path issues
+            test_file = os.path.join(self.system_dir, 'test_patch_file.txt')
             with open(test_file, 'w') as f:
                 f.write("Original content")
                 

@@ -1,0 +1,724 @@
+{
+  "timestamp": "2025-10-20T22:47:01.879897",
+  "total_tests": 89,
+  "passed": 80,
+  "failed": 9,
+  "warnings": 2,
+  "critical_failures": [],
+  "test_details": [
+    {
+      "category": "Dependencies",
+      "name": "numpy (2.3.4)",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:01.924935"
+    },
+    {
+      "category": "Dependencies",
+      "name": "pandas",
+      "status": "FAIL",
+      "message": "No module named 'pandas'",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:01.925618"
+    },
+    {
+      "category": "Dependencies",
+      "name": "tensorflow",
+      "status": "FAIL",
+      "message": "No module named 'tensorflow'",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:01.926560"
+    },
+    {
+      "category": "Dependencies",
+      "name": "scikit-learn",
+      "status": "FAIL",
+      "message": "No module named 'sklearn'",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:01.927555"
+    },
+    {
+      "category": "Dependencies",
+      "name": "redis",
+      "status": "FAIL",
+      "message": "No module named 'redis'",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:01.927640"
+    },
+    {
+      "category": "Dependencies",
+      "name": "google-auth",
+      "status": "FAIL",
+      "message": "No module named 'google'",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:01.927721"
+    },
+    {
+      "category": "Dependencies",
+      "name": "python-dotenv",
+      "status": "FAIL",
+      "message": "No module named 'dotenv'",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:01.928341"
+    },
+    {
+      "category": "Dependencies",
+      "name": "requests (2.32.5)",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.005180"
+    },
+    {
+      "category": "Module Imports",
+      "name": "SIUL Core",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.010319"
+    },
+    {
+      "category": "Module Imports",
+      "name": "Patch Manager",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.014810"
+    },
+    {
+      "category": "Module Imports",
+      "name": "N8N Integration",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.015557"
+    },
+    {
+      "category": "Module Imports",
+      "name": "Trading Engine",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.015940"
+    },
+    {
+      "category": "Module Imports",
+      "name": "Risk Management",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.018091"
+    },
+    {
+      "category": "Module Imports",
+      "name": "AI Council",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.018382"
+    },
+    {
+      "category": "Module Imports",
+      "name": "Market Data",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.018599"
+    },
+    {
+      "category": "Module Imports",
+      "name": "Telegram Bot",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.018753"
+    },
+    {
+      "category": "AI Models",
+      "name": "LSTM Predictor",
+      "status": "FAIL",
+      "message": "No module named 'pandas'",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.019423"
+    },
+    {
+      "category": "AI Models",
+      "name": "GAN Simulator",
+      "status": "FAIL",
+      "message": "No module named 'pandas'",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.019895"
+    },
+    {
+      "category": "AI Models",
+      "name": "Self-Learning Pipeline",
+      "status": "FAIL",
+      "message": "No module named 'pandas'",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.020297"
+    },
+    {
+      "category": "Infrastructure",
+      "name": "Redis Integration Import",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.020914"
+    },
+    {
+      "category": "Infrastructure",
+      "name": "Google Sheets Import",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.021518"
+    },
+    {
+      "category": "Infrastructure",
+      "name": "Google Sheets get_status()",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.021534"
+    },
+    {
+      "category": "Databases",
+      "name": "SIUL Core Database - Integrity",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.034041"
+    },
+    {
+      "category": "Databases",
+      "name": "Patch Manager Database - Integrity",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.034390"
+    },
+    {
+      "category": "Databases",
+      "name": "Trading Database - Integrity",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.034671"
+    },
+    {
+      "category": "Databases",
+      "name": "Market Data Database - Integrity",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.034911"
+    },
+    {
+      "category": "Databases",
+      "name": "Risk Management Database - Integrity",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.035067"
+    },
+    {
+      "category": "Configuration",
+      "name": ".env file exists",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.035123"
+    },
+    {
+      "category": "Configuration",
+      "name": "EXCHANGE_API_KEY configured",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.035191"
+    },
+    {
+      "category": "Configuration",
+      "name": "EXCHANGE_API_SECRET configured",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.035203"
+    },
+    {
+      "category": "Configuration",
+      "name": "TELEGRAM_BOT_TOKEN present",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.035211"
+    },
+    {
+      "category": "Configuration",
+      "name": "TELEGRAM_CHAT_ID present",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.035218"
+    },
+    {
+      "category": "Configuration",
+      "name": "config/mode.json valid JSON",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.035288"
+    },
+    {
+      "category": "Configuration",
+      "name": "config/trading.json valid JSON",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.035354"
+    },
+    {
+      "category": "Configuration",
+      "name": "config/system.json valid JSON",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.035404"
+    },
+    {
+      "category": "Telegram",
+      "name": "Module Import",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.035428"
+    },
+    {
+      "category": "Telegram",
+      "name": "Bot Token Configured",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.035457"
+    },
+    {
+      "category": "Telegram",
+      "name": "Chat ID Configured",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.035464"
+    },
+    {
+      "category": "Telegram",
+      "name": "Bot API Connection",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.346708"
+    },
+    {
+      "category": "Telegram",
+      "name": "Bot Authentication",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.346822"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Directory: data",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.347942"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Writable: data",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.347983"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Directory: data/models",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348028"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Writable: data/models",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348044"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Directory: data/databases",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348058"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Writable: data/databases",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348068"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Directory: logs",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348117"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Writable: logs",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348152"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Directory: config",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348174"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Writable: config",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348185"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Directory: modules",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348196"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Writable: modules",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348205"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Directory: modules/ai_models",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348216"
+    },
+    {
+      "category": "Filesystem",
+      "name": "Writable: modules/ai_models",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348232"
+    },
+    {
+      "category": "Filesystem",
+      "name": "File: tps19_main.py",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348247"
+    },
+    {
+      "category": "Filesystem",
+      "name": "File: requirements_phase1.txt",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348265"
+    },
+    {
+      "category": "Filesystem",
+      "name": "File: modules/ai_models/lstm_predictor.py",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348286"
+    },
+    {
+      "category": "Filesystem",
+      "name": "File: modules/ai_models/gan_simulator.py",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348305"
+    },
+    {
+      "category": "Filesystem",
+      "name": "File: modules/ai_models/self_learning.py",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.348323"
+    },
+    {
+      "category": "Filesystem",
+      "name": "File: modules/redis_integration.py",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.348337"
+    },
+    {
+      "category": "Filesystem",
+      "name": "File: modules/google_sheets_integration.py",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.348348"
+    },
+    {
+      "category": "Main System",
+      "name": "tps19_main.py Import",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.352744"
+    },
+    {
+      "category": "Main System",
+      "name": "TPS19UnifiedSystem class exists",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.352765"
+    },
+    {
+      "category": "Main System",
+      "name": "System Instantiation",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.352795"
+    },
+    {
+      "category": "Main System",
+      "name": "System Components Loaded",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.352803"
+    },
+    {
+      "category": "Main System",
+      "name": "SIUL Component",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.352810"
+    },
+    {
+      "category": "Main System",
+      "name": "Patch Manager Component",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.352817"
+    },
+    {
+      "category": "Main System",
+      "name": "N8N Component",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.352824"
+    },
+    {
+      "category": "Functionality",
+      "name": "SIUL process_unified_logic()",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.355249"
+    },
+    {
+      "category": "Functionality",
+      "name": "SIUL test_functionality()",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.356669"
+    },
+    {
+      "category": "Functionality",
+      "name": "Patch Manager test_patch_rollback_system()",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.502850"
+    },
+    {
+      "category": "Functionality",
+      "name": "N8N test_n8n_integration()",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.504589"
+    },
+    {
+      "category": "Integration",
+      "name": "Main System <-> SIUL",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.504628"
+    },
+    {
+      "category": "Integration",
+      "name": "Main System <-> Patch Manager",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.504637"
+    },
+    {
+      "category": "Integration",
+      "name": "Main System <-> N8N",
+      "status": "PASS",
+      "message": "",
+      "critical": true,
+      "timestamp": "2025-10-20T22:47:02.504644"
+    },
+    {
+      "category": "Documentation",
+      "name": "README_PHASE1.md",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504694"
+    },
+    {
+      "category": "Documentation",
+      "name": "README_PHASE1.md - Non-empty",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504715"
+    },
+    {
+      "category": "Documentation",
+      "name": "PHASE1_COMPLETE.md",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504742"
+    },
+    {
+      "category": "Documentation",
+      "name": "PHASE1_COMPLETE.md - Non-empty",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504754"
+    },
+    {
+      "category": "Documentation",
+      "name": "PHASE1_SUMMARY.md",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504796"
+    },
+    {
+      "category": "Documentation",
+      "name": "PHASE1_SUMMARY.md - Non-empty",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504807"
+    },
+    {
+      "category": "Documentation",
+      "name": "GOOGLE_CLOUD_DEPLOYMENT.md",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504823"
+    },
+    {
+      "category": "Documentation",
+      "name": "GOOGLE_CLOUD_DEPLOYMENT.md - Non-empty",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504834"
+    },
+    {
+      "category": "Documentation",
+      "name": "GCP_QUICKSTART.md",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504853"
+    },
+    {
+      "category": "Documentation",
+      "name": "GCP_QUICKSTART.md - Non-empty",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504865"
+    },
+    {
+      "category": "Documentation",
+      "name": "DEPLOYMENT_OPTIONS.md",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504883"
+    },
+    {
+      "category": "Documentation",
+      "name": "DEPLOYMENT_OPTIONS.md - Non-empty",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504893"
+    },
+    {
+      "category": "Documentation",
+      "name": "TPS19_ENHANCEMENT_PLAN.md",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504913"
+    },
+    {
+      "category": "Documentation",
+      "name": "TPS19_ENHANCEMENT_PLAN.md - Non-empty",
+      "status": "PASS",
+      "message": "",
+      "critical": false,
+      "timestamp": "2025-10-20T22:47:02.504924"
+    }
+  ],
+  "execution_time": 0.6249575614929199,
+  "gate_status": "GO"
+}

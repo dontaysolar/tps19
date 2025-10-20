@@ -8,7 +8,12 @@ from typing import Dict, List, Any, Optional
 class SIULCore:
     """Smart Intelligent Unified Logic - Central Intelligence System"""
     
-    def __init__(self, db_path='/opt/tps19/data/siul_core.db'):
+    def __init__(self, db_path=None):
+        # Use dynamic path based on current working directory or script location
+        if db_path is None:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            db_path = os.path.join(base_dir, 'data', 'siul_core.db')
+        
         self.db_path = db_path
         self.exchange = 'crypto.com'
         self.intelligence_modules = {}
@@ -79,7 +84,8 @@ class SIULCore:
     def process_unified_logic(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Process data through unified logic system"""
         try:
-            chain_id = f"siul_{int(time.time())}"
+            # Use high-resolution time and randomness to avoid collisions
+            chain_id = f"siul_{int(time.time()*1e9)}_{os.getpid()}"
             start_time = time.time()
             
             # Step 1: Gather intelligence from all modules
@@ -189,13 +195,23 @@ class SIULCore:
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
-            cursor.execute("""INSERT INTO logic_chains 
-                (chain_id, input_data, processing_steps, output_data, execution_time, success, exchange)
-                VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            # Upsert to avoid UNIQUE constraint errors from concurrent runs
+            cursor.execute(
+                """
+                INSERT INTO logic_chains 
+                    (chain_id, input_data, processing_steps, output_data, execution_time, success, exchange)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(chain_id) DO UPDATE SET
+                    input_data=excluded.input_data,
+                    processing_steps=excluded.processing_steps,
+                    output_data=excluded.output_data,
+                    execution_time=excluded.execution_time,
+                    success=excluded.success,
+                    exchange=excluded.exchange
+                """,
                 (chain_id, json.dumps(input_data), json.dumps(processing_steps),
-                 json.dumps(output_data), execution_time, success, 'crypto.com'))
-                 
+                 json.dumps(output_data), execution_time, success, 'crypto.com')
+            )
             conn.commit()
             conn.close()
             
