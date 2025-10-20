@@ -1,4 +1,4 @@
-import os, json, sqlite3, threading, time, random
+import os, json, sqlite3, threading, time
 from datetime import datetime
 
 class CryptoComMarketFeed:
@@ -40,12 +40,25 @@ class CryptoComMarketFeed:
             return False
             
     def get_latest_data(self, symbol, limit=1):
+        """Fetch latest data via REST fallback (ccxt), no simulation.
+
+        Returns a list of OHLC-like dicts with 'close'. Falls back to LAST_PRICE env
+        if REST is unavailable.
+        """
         try:
-            # Simulate real market data
-            price = 45000 + random.uniform(-1000, 1000) if 'BTC' in symbol else 3000 + random.uniform(-200, 200)
-            return [{'symbol': symbol, 'close': price, 'volume': 1500, 'exchange': 'crypto.com'}]
-        except Exception as e:
-            print(f"❌ Failed to get data: {e}")
+            import ccxt  # lazy import
+            ex = ccxt.cryptocom({'enableRateLimit': True})
+            ticker = ex.fetch_ticker(symbol.replace('_', '/'))
+            price = float(ticker['last'])
+            return [{'symbol': symbol, 'close': price, 'volume': float(ticker.get('baseVolume') or 0.0), 'exchange': 'crypto.com'}]
+        except Exception:
+            try:
+                price_env = os.environ.get('LAST_PRICE')
+                if price_env:
+                    price = float(price_env)
+                    return [{'symbol': symbol, 'close': price, 'volume': 0.0, 'exchange': 'crypto.com'}]
+            except Exception:
+                pass
             return []
 
 market_feed = CryptoComMarketFeed()
