@@ -236,11 +236,21 @@ class TPS19UnifiedSystem:
 
             # Main system loop
             while self.running:
-                # SIUL processing
+                # Market data source (avoid synthetic test data)
+                symbol = os.environ.get('DEFAULT_SYMBOL', 'BTC_USDT')
+                price_env = os.environ.get('LAST_PRICE')
+                try:
+                    price_val = float(price_env) if price_env else (self._price_history[-1] if self._price_history else None)
+                except Exception:
+                    price_val = None
+                if price_val is None:
+                    print("⚠️ No market data available yet. Waiting for feed...")
+                    time.sleep(5)
+                    continue
                 test_data = {
-                    'symbol': 'BTC_USDT',
-                    'price': 45000 + (time.time() % 1000),
-                    'volume': 1500,
+                    'symbol': symbol,
+                    'price': price_val,
+                    'volume': 0,
                     'exchange': 'crypto.com'
                 }
                 
