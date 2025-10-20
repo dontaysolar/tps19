@@ -2,6 +2,7 @@
 """TPS19 Main Application - DEFINITIVE UNIFIED SYSTEM"""
 
 import sys, os, time, threading, signal
+from urllib.parse import urlparse
 from datetime import datetime
 
 # Add module paths
@@ -22,9 +23,40 @@ except ImportError as e:
 
 # Import Phase 1 AI/ML modules
 try:
-    from ai_models import LSTMPredictor, GANSimulator, SelfLearningPipeline
+    from ai_models import (
+        LSTMPredictor,
+        GANSimulator,
+        SelfLearningPipeline,
+        TransformerAnalyzer,
+    )
     from redis_integration import RedisIntegration
     from google_sheets_integration import GoogleSheetsIntegration
+    from risk_management import RiskManager
+    from nexus_coordinator import NexusCoordinator
+    from strategy_hub import StrategyHub
+    from compliance import ComplianceGate
+    from env_validation import print_validation_summary, ensure_mode_requirements_or_exit
+    from secrets import get_secret
+    # Market data fallback
+    try:
+        from market.market_feed import market_feed
+    except Exception:
+        market_feed = None  # type: ignore
+    try:
+        from websocket_feeds import WebSocketFeeds
+    except Exception:
+        WebSocketFeeds = None  # type: ignore
+    try:
+        from strategies import FoxModeStrategy, MarketMakerStrategy, ArbitrageKingStrategy
+    except Exception:
+        FoxModeStrategy = MarketMakerStrategy = ArbitrageKingStrategy = None  # type: ignore
+    try:
+        from paper_trading import PaperTradingEngine
+        from order_executor import OrderExecutor, ExecutorConfig
+    except Exception:
+        PaperTradingEngine = None  # type: ignore
+        OrderExecutor = None  # type: ignore
+        ExecutorConfig = None  # type: ignore
     print("✅ Phase 1 AI/ML modules imported successfully")
     PHASE1_AVAILABLE = True
 except ImportError as e:
@@ -43,6 +75,7 @@ class TPS19UnifiedSystem:
             'patch_manager': patch_manager,
             'n8n': n8n_integration
         }
+        self._price_history = []
         
         # Initialize Phase 1 components if available
         if PHASE1_AVAILABLE:
@@ -65,10 +98,110 @@ class TPS19UnifiedSystem:
             self.learning_pipeline = SelfLearningPipeline()
             self.system_components['learning'] = self.learning_pipeline
             print("✅ Self-Learning Pipeline initialized")
+
+            # Initialize Transformer analyzer
+            try:
+                self.transformer_analyzer = TransformerAnalyzer()
+                self.system_components['transformer'] = self.transformer_analyzer
+                print("✅ Transformer Analyzer initialized")
+            except Exception as e:
+                print(f"⚠️ Transformer Analyzer initialization failed (optional): {e}")
+
+            # Initialize Risk Manager
+            try:
+                self.risk_manager = RiskManager()
+                self.system_components['risk_manager'] = self.risk_manager
+                print("✅ Risk Manager initialized")
+            except Exception as e:
+                print(f"⚠️ Risk Manager initialization failed (optional): {e}")
+
+            # Initialize NEXUS Coordinator
+            try:
+                self.nexus_coordinator = NexusCoordinator()
+                self.system_components['nexus'] = self.nexus_coordinator
+                print("✅ NEXUS Coordinator initialized")
+            except Exception as e:
+                print(f"⚠️ NEXUS Coordinator initialization failed (optional): {e}")
+
+            # Initialize Strategy Hub
+            try:
+                self.strategy_hub = StrategyHub()
+                self.system_components['strategy_hub'] = self.strategy_hub
+                print("✅ Strategy Hub initialized")
+            except Exception as e:
+                print(f"⚠️ Strategy Hub initialization failed (optional): {e}")
+
+            # Initialize Compliance Gate
+            try:
+                self.compliance_gate = ComplianceGate()
+                self.system_components['compliance'] = self.compliance_gate
+                print("✅ Compliance Gate initialized")
+            except Exception as e:
+                print(f"⚠️ Compliance Gate initialization failed (optional): {e}")
+
+            # Initialize advanced strategies (optional)
+            try:
+                self.fox_mode = FoxModeStrategy() if 'FoxModeStrategy' in globals() and FoxModeStrategy else None
+                self.market_maker = MarketMakerStrategy() if 'MarketMakerStrategy' in globals() and MarketMakerStrategy else None
+                self.arbitrage_king = ArbitrageKingStrategy() if 'ArbitrageKingStrategy' in globals() and ArbitrageKingStrategy else None
+                print("✅ Advanced strategies ready")
+            except Exception as e:
+                print(f"⚠️ Advanced strategies init failed (optional): {e}")
+
+            # Initialize WebSocket Feeds (optional)
+            try:
+                if 'WebSocketFeeds' in globals() and WebSocketFeeds is not None:
+                    self.websocket_feeds = WebSocketFeeds()
+                    self.system_components['websocket_feeds'] = self.websocket_feeds
+                    print("✅ WebSocket Feeds ready")
+                else:
+                    print("⚠️ WebSocket Feeds not available (optional)")
+            except Exception as e:
+                print(f"⚠️ WebSocket Feeds initialization failed (optional): {e}")
+            
+            # Initialize Order Executor
+            try:
+                trading_mode = os.environ.get('TRADING_MODE', 'paper').lower()
+                min_amount = float(os.environ.get('MIN_ORDER_AMOUNT', '0.0') or 0.0)
+                paper_engine = None
+                if trading_mode == 'paper' and 'PaperTradingEngine' in globals() and PaperTradingEngine:
+                    start_balance = float(os.environ.get('PAPER_START_BALANCE', '100') or 100)
+                    paper_engine = PaperTradingEngine(starting_balance=start_balance)
+                if 'OrderExecutor' in globals() and OrderExecutor and 'ExecutorConfig' in globals() and ExecutorConfig:
+                    self.order_executor = OrderExecutor(
+                        ExecutorConfig(mode=trading_mode, min_amount=min_amount),
+                        exchange=None,
+                        paper_engine=paper_engine,
+                    )
+                    self.system_components['order_executor'] = self.order_executor
+                    print(f"✅ Order Executor initialized (mode={trading_mode})")
+                else:
+                    print("⚠️ Order Executor not available")
+            except Exception as e:
+                print(f"⚠️ Order Executor initialization failed (optional): {e}")
             
             # Initialize Redis (optional)
             try:
-                self.redis = RedisIntegration()
+                # Support REDIS_URL or individual vars
+                redis_url = os.environ.get('REDIS_URL')
+                if redis_url:
+                    parsed = urlparse(redis_url)
+                    redis_host = parsed.hostname or 'localhost'
+                    redis_port = parsed.port or 6379
+                    # For URLs like redis://:password@host:port/db
+                    redis_password = parsed.password
+                    try:
+                        redis_db = int((parsed.path or '/0').lstrip('/'))
+                    except Exception:
+                        redis_db = 0
+                    use_ssl = (parsed.scheme or '').lower() == 'rediss'
+                else:
+                    redis_host = os.environ.get('REDIS_HOST', 'localhost')
+                    redis_port = int(os.environ.get('REDIS_PORT', '6379') or 6379)
+                    redis_db = int(os.environ.get('REDIS_DB', '0') or 0)
+                    redis_password = os.environ.get('REDIS_PASSWORD')
+                    use_ssl = os.environ.get('REDIS_USE_SSL', 'false').lower() in ('1', 'true', 'yes')
+                self.redis = RedisIntegration(host=redis_host, port=redis_port, db=redis_db, password=redis_password, use_ssl=use_ssl)
                 if self.redis.connected:
                     self.system_components['redis'] = self.redis
                     print("✅ Redis connected")
@@ -83,6 +216,12 @@ class TPS19UnifiedSystem:
                 if self.google_sheets.connected:
                     self.system_components['google_sheets'] = self.google_sheets
                     print("✅ Google Sheets connected")
+                    # Ensure a dashboard exists
+                    if not getattr(self.google_sheets, 'spreadsheet_id', None):
+                        try:
+                            self.google_sheets.create_dashboard('TPS19 Trading Dashboard')
+                        except Exception as e:
+                            print(f"⚠️ Could not create Google Sheets dashboard: {e}")
                 else:
                     print("⚠️ Google Sheets not available (optional)")
             except Exception as e:
@@ -96,37 +235,292 @@ class TPS19UnifiedSystem:
         try:
             print("🚀 Starting TPS19 Definitive Unified System...")
             self.running = True
+
+            # Environment validation summary
+            try:
+                print_validation_summary()
+                trading_mode = os.environ.get('TRADING_MODE', 'paper')
+                ensure_mode_requirements_or_exit(trading_mode)
+            except Exception as e:
+                print(f"⚠️ Env validation unavailable: {e}")
             
             # Start N8N service
+            # Set secrets from Secret Manager if configured
+            try:
+                for key in ['EXCHANGE_API_KEY', 'EXCHANGE_API_SECRET', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']:
+                    if not os.environ.get(key):
+                        v = get_secret(key)
+                        if v:
+                            os.environ[key] = v
+            except Exception:
+                pass
+
             n8n_integration.start_n8n_service()
             
+            # Optional WebSocket subscription (wire handler to price history)
+            try:
+                if hasattr(self, 'websocket_feeds'):
+                    ws_url = os.environ.get('WEBSOCKET_URL')
+                    if ws_url and not hasattr(self, '_ws_started'):
+                        def _on_ws(msg: str):
+                            # Minimal parser for price-only JSON {'p': float}
+                            try:
+                                import json as _json
+                                data = _json.loads(msg)
+                                p = data.get('p') or data.get('price')
+                                if isinstance(p, (int, float)):
+                                    self._price_history.append(float(p))
+                                    if len(self._price_history) > 500:
+                                        self._price_history = self._price_history[-500:]
+                            except Exception:
+                                pass
+                        self.websocket_feeds.subscribe_generic(ws_url, _on_ws)
+                        self._ws_started = True
+                        print(f"🔌 Subscribed to WebSocket: {ws_url}")
+            except Exception as e:
+                print(f"⚠️ WebSocket subscription error: {e}")
+
             # Main system loop
             while self.running:
-                # SIUL processing
+                # Market data source (avoid synthetic test data)
+                symbol = os.environ.get('DEFAULT_SYMBOL', 'BTC_USDT')
+                price_val = None
+                # Prefer WS history
+                if self._price_history:
+                    try:
+                        price_val = float(self._price_history[-1])
+                    except Exception:
+                        price_val = None
+                # Fallback: REST market feed
+                if price_val is None and market_feed is not None:
+                    try:
+                        data = market_feed.get_latest_data(symbol, 1)
+                        if data:
+                            price_val = float(data[0]['close'])
+                    except Exception:
+                        price_val = None
+                # Final fallback: env LAST_PRICE
+                if price_val is None:
+                    price_env = os.environ.get('LAST_PRICE')
+                    try:
+                        price_val = float(price_env) if price_env else None
+                    except Exception:
+                        price_val = None
+                if price_val is None:
+                    print("⚠️ No market data available yet. Waiting for feed...")
+                    time.sleep(5)
+                    continue
                 test_data = {
-                    'symbol': 'BTC_USDT',
-                    'price': 45000 + (time.time() % 1000),
-                    'volume': 1500,
+                    'symbol': symbol,
+                    'price': price_val,
+                    'volume': 0,
                     'exchange': 'crypto.com'
                 }
                 
                 siul_result = siul_core.process_unified_logic(test_data)
                 
-                if siul_result and siul_result.get('final_decision'):
-                    decision = siul_result['final_decision']
+                # Update price history and run transformer prediction (optional)
+                try:
+                    self._price_history.append(float(test_data['price']))
+                    if len(self._price_history) > 500:
+                        self._price_history = self._price_history[-500:]
+                except Exception:
+                    pass
+
+                transformer_pred = None
+                if hasattr(self, 'transformer_analyzer') and self._price_history:
+                    try:
+                        transformer_pred = self.transformer_analyzer.predict_direction(self._price_history, horizon_steps=30)
+                    except Exception as e:
+                        print(f"⚠️ Transformer prediction error: {e}")
+
+                # Kelly-based position size (optional)
+                recommended_pos_value = None
+                if hasattr(self, 'risk_manager') and transformer_pred:
+                    try:
+                        p = float(transformer_pred.get('confidence', 0.0) or 0.0)
+                        portfolio_value = float(os.environ.get('PORTFOLIO_VALUE', '100') or 100)
+                        recommended_pos_value = self.risk_manager.calculate_kelly_position(
+                            portfolio_value=portfolio_value,
+                            win_rate=max(0.0, min(1.0, p)),
+                            reward_risk=1.5,
+                        )
+                    except Exception as e:
+                        print(f"⚠️ Kelly sizing error: {e}")
+
+                # NEXUS combined decision (optional)
+                combined = None
+                if hasattr(self, 'nexus_coordinator'):
+                    try:
+                        combined = self.nexus_coordinator.combine_decisions(
+                            siul_result.get('final_decision', {}) if isinstance(siul_result, dict) else {},
+                            transformer_pred,
+                            recommended_pos_value,
+                        )
+                    except Exception as e:
+                        print(f"⚠️ NEXUS combination error: {e}")
+
+                # Optional: StrategyHub could pick best among multiple strategy candidates
+                if hasattr(self, 'strategy_hub'):
+                    try:
+                        candidates = []
+                        if transformer_pred:
+                            candidates.append({
+                                'strategy': 'transformer',
+                                'pair': test_data['symbol'].replace('_', '/'),
+                                'signal': 'BUY' if transformer_pred.get('direction') == 'UP' else 'SELL' if transformer_pred.get('direction') == 'DOWN' else 'HOLD',
+                                'confidence': transformer_pred.get('confidence', 0.0)
+                            })
+                        if siul_result and siul_result.get('final_decision'):
+                            candidates.append({
+                                'strategy': 'siul',
+                                'pair': test_data['symbol'].replace('_', '/'),
+                                'signal': siul_result['final_decision'].get('decision', 'hold').upper(),
+                                'confidence': float(siul_result.get('confidence', 0.0))
+                            })
+                        # Advanced strategies candidates (use simple anchors/momentum heuristics)
+                        if hasattr(self, 'fox_mode') and self.fox_mode and transformer_pred is not None:
+                            candidates.append(self.fox_mode.generate_signal(test_data['symbol'].replace('_', '/'), momentum=transformer_pred.get('momentum', 0.0) or 0.0, volatility=transformer_pred.get('volatility', 0.0) or 0.0))
+                        if hasattr(self, 'market_maker') and self.market_maker:
+                            anchor = self._price_history[-50] if len(self._price_history) >= 50 else (self._price_history[0] if self._price_history else 0.0)
+                            candidates.append(self.market_maker.generate_signal(test_data['symbol'].replace('_', '/'), last_price=float(test_data['price']), anchor_price=float(anchor)))
+                        if hasattr(self, 'arbitrage_king') and self.arbitrage_king:
+                            # Placeholder: compare current price vs last recorded price
+                            prev_price = self._price_history[-2] if len(self._price_history) >= 2 else float(test_data['price'])
+                            candidates.append(self.arbitrage_king.generate_signal(test_data['symbol'].replace('_', '/'), price_a=float(test_data['price']), price_b=float(prev_price)))
+                        best_candidate = self.strategy_hub.select(candidates)
+                        if best_candidate:
+                            print(f"🧭 StrategyHub selected: {best_candidate.get('strategy')} -> {best_candidate.get('signal')} ({best_candidate.get('confidence', 0.0):.0%})")
+                    except Exception as e:
+                        print(f"⚠️ StrategyHub selection error: {e}")
+
+                # Use StrategyHub selection if available, otherwise SIUL decision
+                selected_decision = None
+                if hasattr(self, 'strategy_hub'):
+                    try:
+                        selected = None
+                        candidates = []
+                        if transformer_pred:
+                            candidates.append({
+                                'strategy': 'transformer',
+                                'pair': test_data['symbol'].replace('_', '/'),
+                                'signal': 'BUY' if transformer_pred.get('direction') == 'UP' else 'SELL' if transformer_pred.get('direction') == 'DOWN' else 'HOLD',
+                                'confidence': transformer_pred.get('confidence', 0.0)
+                            })
+                        if siul_result and siul_result.get('final_decision'):
+                            candidates.append({
+                                'strategy': 'siul',
+                                'pair': test_data['symbol'].replace('_', '/'),
+                                'signal': siul_result['final_decision'].get('decision', 'hold').upper(),
+                                'confidence': float(siul_result.get('confidence', 0.0))
+                            })
+                        selected = self.strategy_hub.select(candidates) if candidates else None
+                        if selected:
+                            selected_decision = {
+                                'decision': selected.get('signal', 'HOLD').lower(),
+                                'confidence': float(selected.get('confidence', 0.0)),
+                            }
+                    except Exception:
+                        selected_decision = None
+
+                decision_source = 'SIUL'
+                if not selected_decision and siul_result and siul_result.get('final_decision'):
+                    selected_decision = siul_result['final_decision']
+                    decision_source = 'SIUL'
+                elif selected_decision:
+                    decision_source = 'StrategyHub'
+
+                if selected_decision:
+                    decision = selected_decision
                     
                     # Send to N8N if significant decision
                     if decision.get('confidence', 0) > 0.7:
-                        n8n_integration.send_trade_signal({
+                        # Compliance gating
+                        try:
+                            notional = float(recommended_pos_value or float(os.environ.get('MAX_POSITION_USD', '1.0') or 1.0))
+                            gate = self.compliance_gate.can_trade(self.state if hasattr(self, 'state') else {}, float(decision.get('confidence', 0.0)), notional_value=notional) if hasattr(self, 'compliance_gate') else {'allow': True}
+                            if not gate.get('allow', True):
+                                print(f"🛂 Trade blocked by compliance: {gate.get('reason')}")
+                                continue
+                        except Exception as e:
+                            print(f"⚠️ Compliance check failed (allowing): {e}")
+                        payload = {
                             'symbol': test_data['symbol'],
                             'action': decision['decision'],
                             'price': test_data['price'],
-                            'confidence': decision['confidence']
-                        })
+                            'confidence': decision['confidence'],
+                            'source': decision_source,
+                        }
+                        if recommended_pos_value is not None:
+                            payload['kelly_position_value'] = round(float(recommended_pos_value), 2)
+                        if transformer_pred:
+                            payload['transformer'] = {
+                                'direction': transformer_pred.get('direction'),
+                                'confidence': transformer_pred.get('confidence')
+                            }
+                        n8n_integration.send_trade_signal(payload)
+
+                        # Execute via central executor (paper by default)
+                        try:
+                            if hasattr(self, 'order_executor'):
+                                pair = test_data['symbol'].replace('_', '/')
+                                base = pair.split('/')[0]
+                                amount_usd = float(os.environ.get('MAX_POSITION_USD', '1.0') or 1.0)
+                                price_f = float(test_data['price'])
+                                trade_amount = amount_usd / price_f if price_f > 0 else 0.0
+                                if decision['decision'].lower() in ['buy', 'up']:
+                                    res = self.order_executor.execute_buy(pair, trade_amount, price_hint=price_f)
+                                elif decision['decision'].lower() in ['sell', 'down']:
+                                    res = self.order_executor.execute_sell(pair, trade_amount, price_hint=price_f)
+                                else:
+                                    res = {'status': 'skipped'}
+                                print(f"🛠️ OrderExecutor result: {res.get('status')}")
+                        except Exception as e:
+                            print(f"⚠️ Order execution error: {e}")
                         
                 print(f"💓 TPS19 Unified System - {datetime.now()}")
                 print(f"🧠 SIUL Decision: {siul_result.get('final_decision', {}).get('decision', 'hold')}")
                 print(f"📊 Confidence: {siul_result.get('confidence', 0):.2%}")
+                if transformer_pred:
+                    print(f"🔎 Transformer: {transformer_pred.get('direction')} ({transformer_pred.get('confidence', 0.0):.0%})")
+                if combined:
+                    print(f"🎛️ Combined: {combined.get('signal')} ({combined.get('confidence', 0.0):.0%})")
+                if recommended_pos_value is not None:
+                    print(f"💰 Kelly position (value): ${recommended_pos_value:.2f}")
+
+                # Persist lightweight system status for Telegram queries
+                try:
+                    os.makedirs('data', exist_ok=True)
+                    status_payload = {
+                        'transformer': {
+                            'direction': transformer_pred.get('direction') if transformer_pred else None,
+                            'confidence': transformer_pred.get('confidence') if transformer_pred else None,
+                        },
+                        'kelly': {
+                            'position_value': float(recommended_pos_value) if recommended_pos_value is not None else 0.0,
+                            'win_rate': float(transformer_pred.get('confidence', 0.0)) if transformer_pred else 0.0,
+                        },
+                        'combined': combined or {},
+                        'timestamp': datetime.now().isoformat(),
+                    }
+                    with open('data/system_status.json', 'w') as f:
+                        import json as _json
+                        _json.dump(status_payload, f, indent=2)
+                except Exception as _e:
+                    pass
+
+                # Google Sheets overview update (light)
+                try:
+                    if hasattr(self, 'google_sheets') and self.google_sheets.connected and getattr(self.google_sheets, 'spreadsheet_id', None):
+                        ai_models_running = sum(1 for k in ['lstm', 'gan', 'learning', 'transformer'] if k in self.system_components)
+                        self.google_sheets.update_overview({
+                            'trading_status': 'Active' if self.running else 'Stopped',
+                            'strategies_active': 1,  # placeholder: SIUL
+                            'ai_models_running': ai_models_running,
+                            'last_trade': '',
+                        })
+                except Exception as e:
+                    print(f"⚠️ Google Sheets update failed: {e}")
                 
                 time.sleep(30)
                 

@@ -16,9 +16,10 @@ from dotenv import load_dotenv
 # Load environment
 load_dotenv()
 
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7289126201:AAHaWTLKxpddtbJ9oa4hGdvKaq0mypqU75Y')
-CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '7517400013')
+BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 STATUS_FILE = 'data/bot_status.json'
+TELEGRAM_CONFIGURED = bool(BOT_TOKEN and CHAT_ID)
 
 class TelegramController:
     """Simple Telegram bot controller"""
@@ -65,6 +66,8 @@ class TelegramController:
     
     def send_message(self, text, parse_mode='Markdown'):
         """Send message to Telegram"""
+        if not TELEGRAM_CONFIGURED:
+            return None
         try:
             url = f"{self.base_url}/sendMessage"
             data = {
@@ -124,6 +127,12 @@ class TelegramController:
             self.cmd_ai_toggle(False)
         elif text in ['/stats', 'stats', 'statistics']:
             self.cmd_stats()
+        elif text in ['mode paper', 'mode real']:
+            self.cmd_mode(text)
+        elif text in ['paper on', 'paper off', 'paper status']:
+            self.cmd_paper(text)
+        elif text in ['transformer status', 'kelly status']:
+            self.cmd_models(text)
         elif text in ['reset', 'reset stats']:
             self.cmd_reset_stats()
         else:
@@ -153,6 +162,19 @@ class TelegramController:
 • `ai on` - Enable AI predictions
 • `ai off` - Disable AI predictions
 
+🧪 *Paper Trading:*
+• `paper on` - Enable paper trading
+• `paper off` - Disable paper trading
+• `paper status` - Show paper trading status
+
+🔎 *Model Status:*
+• `transformer status` - Last transformer direction/confidence
+• `kelly status` - Last Kelly position suggestion
+
+🛠️ *Mode & Config:*
+• `mode paper` - Switch to paper mode (requires restart)
+• `mode real` - Switch to real mode (requires restart)
+
 🔧 *Other:*
 • `reset stats` - Reset statistics
 • `help` - Show this message
@@ -165,6 +187,14 @@ class TelegramController:
 _Reply with any command to control your bot!_
 """
         self.send_message(help_text)
+
+    def cmd_mode(self, text):
+        mode = 'paper' if 'paper' in text else 'real'
+        try:
+            os.environ['TRADING_MODE'] = mode
+            self.send_message(f"🛠️ TRADING_MODE set to: {mode}\n\nRestart the bot to apply.")
+        except Exception:
+            self.send_message("❌ Failed to set mode")
     
     def cmd_status(self):
         """Show bot status"""
@@ -188,6 +218,45 @@ AI Models: {ai_emoji} {'ON' if self.status['ai_enabled'] else 'OFF'}
 _Last updated: {self.status.get('last_update', 'Never')}_
 """
         self.send_message(text)
+
+    def cmd_paper(self, text):
+        """Toggle/show paper trading status (file-based flag)."""
+        flag_path = 'data/paper_trading.enabled'
+        os.makedirs('data', exist_ok=True)
+        if text == 'paper on':
+            with open(flag_path, 'w') as f:
+                f.write('1')
+            self.send_message("🧪 Paper trading: ENABLED")
+        elif text == 'paper off':
+            if os.path.exists(flag_path):
+                os.remove(flag_path)
+            self.send_message("🧪 Paper trading: DISABLED")
+        else:
+            enabled = os.path.exists(flag_path)
+            self.send_message(f"🧪 Paper trading status: {'ENABLED' if enabled else 'DISABLED'}")
+
+    def cmd_models(self, text):
+        """Show last transformer and Kelly calculations from system status file."""
+        status_file = 'data/system_status.json'
+        try:
+            if os.path.exists(status_file):
+                with open(status_file, 'r') as f:
+                    s = json.load(f)
+            else:
+                s = {}
+        except Exception:
+            s = {}
+
+        if text == 'transformer status':
+            t = s.get('transformer', {})
+            self.send_message(
+                f"🔎 Transformer\n\nDirection: {t.get('direction', 'UNKNOWN')}\nConfidence: {t.get('confidence', 0):.2f}"
+            )
+        else:
+            k = s.get('kelly', {})
+            self.send_message(
+                f"💰 Kelly Sizing\n\nPosition Value: ${k.get('position_value', 0):.2f}\nWin Rate Proxy: {k.get('win_rate', 0):.2f}"
+            )
     
     def cmd_balance(self):
         """Show balance info"""
@@ -356,15 +425,21 @@ _Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_
         """Main bot loop"""
         print("🤖 Telegram Controller starting...")
         
-        # Send startup message
-        self.send_message(
-            "🤖 *TPS19 Bot Online!*\n\n"
-            "✅ Ready to receive commands\n\n"
-            "_Reply with 'help' to see commands_"
-        )
+        # Send startup message if configured
+        if TELEGRAM_CONFIGURED:
+            self.send_message(
+                "🤖 *TPS19 Bot Online!*\n\n"
+                "✅ Ready to receive commands\n\n"
+                "_Reply with 'help' to see commands_"
+            )
+        else:
+            print("⚠️ Telegram not configured (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID missing). Running without messaging.")
         
         while self.running:
             try:
+                if not TELEGRAM_CONFIGURED:
+                    time.sleep(3)
+                    continue
                 updates = self.get_updates()
                 
                 if updates and updates.get('ok'):

@@ -7,14 +7,15 @@ ZERO mock data, ZERO tolerance for errors
 import os, sys, time, json, requests
 from datetime import datetime
 
-# Load environment
-with open('.env') as f:
-    for line in f:
-        if '=' in line and not line.startswith('#'):
-            k,v = line.strip().split('=',1)
-            os.environ[k] = v
+# Load environment (optional)
+try:
+    from dotenv import load_dotenv  # type: ignore
+    load_dotenv()
+except Exception:
+    pass
 
 sys.path.insert(0, 'bots')
+sys.path.insert(0, 'modules')
 
 # Import ALL operational bots
 from god_bot import GODBot
@@ -31,18 +32,48 @@ from sentiment_analyzer import SentimentAnalyzer
 from enhanced_notifications import EnhancedNotifications
 
 import ccxt
+from compliance import ComplianceGate
+from secrets import get_secret
+from env_validation import ensure_mode_requirements_or_exit
+from order_executor import OrderExecutor, ExecutorConfig
+from paper_trading import PaperTradingEngine
 
 class APEXNexusV2:
     def __init__(self):
         print("🚀 APEX NEXUS V2.0 - PRODUCTION SYSTEM")
         print("="*80)
         
-        # Initialize exchange
-        self.exchange = ccxt.cryptocom({
-            'apiKey': os.environ['EXCHANGE_API_KEY'],
-            'secret': os.environ['EXCHANGE_API_SECRET'],
-            'enableRateLimit': True
-        })
+        # Initialize trading mode
+        # Resolve secrets via Secret Manager if missing
+        try:
+            for key in ['EXCHANGE_API_KEY', 'EXCHANGE_API_SECRET', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']:
+                if not os.environ.get(key):
+                    v = get_secret(key)
+                    if v:
+                        os.environ[key] = v
+        except Exception:
+            pass
+
+        trading_mode = os.environ.get('TRADING_MODE', 'paper').lower()
+        ensure_mode_requirements_or_exit(trading_mode)
+        self.paper_enabled = trading_mode != 'real'
+        self.paper_balance = float(os.environ.get('PAPER_START_BALANCE', '100') or 100)
+        if trading_mode == 'real':
+            self.exchange = ccxt.cryptocom({
+                'apiKey': os.environ.get('EXCHANGE_API_KEY', ''),
+                'secret': os.environ.get('EXCHANGE_API_SECRET', ''),
+                'enableRateLimit': True
+            })
+        else:
+            # Use public client for market data even in paper mode
+            self.exchange = ccxt.cryptocom({'enableRateLimit': True})
+            self.paper_state = {'balance': self.paper_balance, 'positions': {}}
+        
+        # Compliance gate and central order executor
+        self.compliance_gate = ComplianceGate()
+        min_amount = float(os.environ.get('MIN_ORDER_AMOUNT', '0.0') or 0.0)
+        paper_engine = PaperTradingEngine(starting_balance=self.paper_balance) if self.paper_enabled else None
+        self.order_executor = OrderExecutor(ExecutorConfig(mode=trading_mode, min_amount=min_amount), exchange=self.exchange if not self.paper_enabled else None, paper_engine=paper_engine)
         
         # Initialize all bots
         print("Loading God-Level AI...")
@@ -79,9 +110,14 @@ class APEXNexusV2:
     
     def send_telegram(self, msg):
         try:
-            requests.post(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage",
-                         json={'chat_id': os.environ['TELEGRAM_CHAT_ID'], 'text': msg}, timeout=5)
-        except: pass
+            token = os.environ.get('TELEGRAM_BOT_TOKEN')
+            chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+            if not token or not chat_id:
+                return
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
+                         json={'chat_id': chat_id, 'text': msg}, timeout=5)
+        except:
+            pass
     
     def run(self):
         print("Starting autonomous trading cycle...\n")
@@ -135,7 +171,7 @@ class APEXNexusV2:
                     # Check with conflict resolver - LOWERED THRESHOLD
                     can_trade = self.conflict_resolver.can_open_position(best['pair'])
                     if can_trade['allowed'] and best['confidence'] >= 0.65:
-                        # EXECUTE REAL TRADE
+                        # EXECUTE TRADE (real or paper)
                         try:
                             ticker = self.exchange.fetch_ticker(best['pair'])
                             price = ticker['last']
@@ -155,13 +191,21 @@ class APEXNexusV2:
                             
                             # Check minimum
                             markets = self.exchange.load_markets()
-                            min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
+                            try:
+                                min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
+                            except Exception:
+                                min_amount = 0.00001
                             
                             if amount >= min_amount:
+                                # Compliance check
+                                gate = self.compliance_gate.can_trade(self.state, signal_confidence=float(best['confidence']), notional_value=float(amount_usd))
+                                if not gate.get('allow', True):
+                                    print(f"🛂 Trade blocked by compliance: {gate.get('reason')}")
+                                    continue
                                 # EXECUTE TRADE - TRY BOTH BUY AND SELL
                                 if best['signal'] in ['UP', 'BUY']:
                                     print(f"🔥 EXECUTING BUY ORDER...")
-                                    order = self.exchange.create_market_buy_order(best['pair'], amount)
+                                    order = self.order_executor.execute_buy(best['pair'], amount, price_hint=price)
                                     print(f"✅ BOUGHT {amount:.6f} {base} @ ${price:.2f}")
                                     print(f"   Order ID: {order.get('id', 'N/A')}")
                                     self.send_telegram(f"✅ TRADE EXECUTED\n\nBUY {amount:.6f} {base}\nPrice: ${price:.2f}\nValue: ${amount_usd:.2f}\nConfidence: {best['confidence']*100:.0f}%\nOrder: {order.get('id', 'N/A')}")
@@ -169,7 +213,7 @@ class APEXNexusV2:
                                     # Only sell if we have a position
                                     pos = self.state['positions'][best['pair']]
                                     print(f"🔥 EXECUTING SELL ORDER...")
-                                    order = self.exchange.create_market_sell_order(best['pair'], pos['amount'])
+                                    order = self.order_executor.execute_sell(best['pair'], pos['amount'], price_hint=price)
                                     print(f"✅ SOLD {pos['amount']:.6f} {base} @ ${price:.2f}")
                                     self.send_telegram(f"✅ SOLD\n\n{pos['amount']:.6f} {base}\nPrice: ${price:.2f}\nEntry: ${pos['entry_price']:.2f}\nP&L: ${(price - pos['entry_price']) * pos['amount']:.2f}")
                                     del self.state['positions'][best['pair']]

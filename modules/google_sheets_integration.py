@@ -26,15 +26,21 @@ class GoogleSheetsIntegration:
         Args:
             credentials_file: Path to Google service account credentials
         """
-        self.credentials_file = credentials_file
+        # Allow overriding credentials path via environment variable
+        self.credentials_file = os.environ.get('GOOGLE_SHEETS_CREDENTIALS_PATH', credentials_file)
         self.service = None
         self.spreadsheet_id = None
         self.connected = False
         
-        if GOOGLE_AVAILABLE and os.path.exists(credentials_file):
+        if GOOGLE_AVAILABLE and os.path.exists(self.credentials_file):
             self._connect()
-        elif not os.path.exists(credentials_file):
-            print(f"⚠️ Credentials file not found: {credentials_file}")
+        elif not os.path.exists(self.credentials_file):
+            print(f"⚠️ Credentials file not found: {self.credentials_file}")
+        
+        # Optionally set spreadsheet id from environment
+        env_sheet_id = os.environ.get('GOOGLE_SHEETS_SPREADSHEET_ID')
+        if env_sheet_id:
+            self.spreadsheet_id = env_sheet_id
             
     def _connect(self):
         """Connect to Google Sheets API"""
