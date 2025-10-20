@@ -67,6 +67,34 @@ class RiskManager:
         # This would check individual position sizes in a real implementation
         
         return risks
+
+    def pre_trade_gate(self, portfolio_value: float, proposed_order: dict) -> dict:
+        """Portfolio-level risk gate for any outgoing order.
+
+        Args:
+            portfolio_value: Current portfolio USD value
+            proposed_order: {symbol, side, price, amount, value_usd}
+
+        Returns:
+            {allowed: bool, reasons: [..], max_allowed_value_usd: float}
+        """
+        reasons = []
+        max_value = portfolio_value * self.max_position_size
+        value_usd = proposed_order.get('value_usd') or (proposed_order.get('price', 0) * proposed_order.get('amount', 0))
+
+        if value_usd > max_value:
+            reasons.append(f"position_size_exceeds_limit: {value_usd:.2f} > {max_value:.2f}")
+
+        daily_pnl = proposed_order.get('projected_daily_pnl', 0.0)
+        daily_loss_pct = abs(daily_pnl) / portfolio_value if portfolio_value > 0 else 0
+        if daily_loss_pct > self.max_daily_loss:
+            reasons.append("daily_loss_limit_breached")
+
+        return {
+            "allowed": len(reasons) == 0,
+            "reasons": reasons,
+            "max_allowed_value_usd": max_value
+        }
         
     def calculate_var(self, returns, confidence=0.95):
         """Calculate Value at Risk"""

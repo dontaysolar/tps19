@@ -3,6 +3,7 @@
 
 import sys, os, time, threading, signal
 from datetime import datetime
+from queue import Queue, Empty
 
 # Add module paths
 workspace_dir = os.path.dirname(os.path.abspath(__file__))
@@ -91,11 +92,53 @@ class TPS19UnifiedSystem:
         except Exception as e:
             print(f"⚠️ Phase 1 component initialization error: {e}")
         
+    def _start_event_bus(self):
+        """Initialize central event bus and planner loop."""
+        self.event_bus = Queue(maxsize=10000)
+        self.running = True
+
+        def planner_loop():
+            while self.running:
+                try:
+                    event = self.event_bus.get(timeout=1)
+                except Empty:
+                    continue
+
+                # Perceive: enrich event if needed
+                perceived = event
+
+                # Plan: use SIUL to get a unified decision
+                siul_result = siul_core.process_unified_logic({
+                    'symbol': perceived.get('symbol', 'BTC_USDT'),
+                    'price': perceived.get('price', 0),
+                    'volume': perceived.get('volume', 0),
+                    'exchange': self.exchange
+                })
+
+                decision = siul_result.get('final_decision', {})
+
+                # Act: route to N8N if confidence high
+                if decision.get('confidence', 0) > 0.7:
+                    n8n_integration.send_trade_signal({
+                        'symbol': perceived.get('symbol', 'BTC_USDT'),
+                        'action': decision.get('decision', 'hold'),
+                        'price': perceived.get('price', 0),
+                        'confidence': decision.get('confidence', 0)
+                    })
+
+                # Learn: placeholder hook (self-learning modules consume logs/db)
+                # In future, push feedback events here
+
+        self.planner_thread = threading.Thread(target=planner_loop, daemon=True)
+        self.planner_thread.start()
+
     def start_system(self):
         """Start the complete unified system"""
         try:
             print("🚀 Starting TPS19 Definitive Unified System...")
             self.running = True
+            # Start event bus/planner
+            self._start_event_bus()
             
             # Start N8N service
             n8n_integration.start_n8n_service()
@@ -110,19 +153,8 @@ class TPS19UnifiedSystem:
                     'exchange': 'crypto.com'
                 }
                 
-                siul_result = siul_core.process_unified_logic(test_data)
-                
-                if siul_result and siul_result.get('final_decision'):
-                    decision = siul_result['final_decision']
-                    
-                    # Send to N8N if significant decision
-                    if decision.get('confidence', 0) > 0.7:
-                        n8n_integration.send_trade_signal({
-                            'symbol': test_data['symbol'],
-                            'action': decision['decision'],
-                            'price': test_data['price'],
-                            'confidence': decision['confidence']
-                        })
+                # Publish market heartbeat to the event bus for planner
+                self.event_bus.put(test_data)
                         
                 print(f"💓 TPS19 Unified System - {datetime.now()}")
                 print(f"🧠 SIUL Decision: {siul_result.get('final_decision', {}).get('decision', 'hold')}")

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-10-19T02:25:42.898755",
+  "timestamp": "2025-10-20T22:31:10.935666",
   "total_tests": 89,
   "passed": 80,
   "failed": 9,
@@ -12,7 +12,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:42.972519"
+      "timestamp": "2025-10-20T22:31:11.035724"
     },
     {
       "category": "Dependencies",
@@ -20,7 +20,7 @@
       "status": "FAIL",
       "message": "No module named 'pandas'",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:42.973526"
+      "timestamp": "2025-10-20T22:31:11.036674"
     },
     {
       "category": "Dependencies",
@@ -28,7 +28,7 @@
       "status": "FAIL",
       "message": "No module named 'tensorflow'",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:42.975356"
+      "timestamp": "2025-10-20T22:31:11.038564"
     },
     {
       "category": "Dependencies",
@@ -36,7 +36,7 @@
       "status": "FAIL",
       "message": "No module named 'sklearn'",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:42.978479"
+      "timestamp": "2025-10-20T22:31:11.039905"
     },
     {
       "category": "Dependencies",
@@ -44,7 +44,7 @@
       "status": "FAIL",
       "message": "No module named 'redis'",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:42.979887"
+      "timestamp": "2025-10-20T22:31:11.041381"
     },
     {
       "category": "Dependencies",
@@ -52,7 +52,7 @@
       "status": "FAIL",
       "message": "No module named 'google'",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:42.981711"
+      "timestamp": "2025-10-20T22:31:11.042766"
     },
     {
       "category": "Dependencies",
@@ -60,7 +60,7 @@
       "status": "FAIL",
       "message": "No module named 'dotenv'",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:42.981836"
+      "timestamp": "2025-10-20T22:31:11.044008"
     },
     {
       "category": "Dependencies",
@@ -68,7 +68,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.090522"
+      "timestamp": "2025-10-20T22:31:11.160018"
     },
     {
       "category": "Module Imports",
@@ -76,7 +76,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.091878"
+      "timestamp": "2025-10-20T22:31:11.164992"
     },
     {
       "category": "Module Imports",
@@ -84,7 +84,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.100537"
+      "timestamp": "2025-10-20T22:31:11.168351"
     },
     {
       "category": "Module Imports",
@@ -92,7 +92,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.101227"
+      "timestamp": "2025-10-20T22:31:11.169072"
     },
     {
       "category": "Module Imports",
@@ -100,7 +100,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.101393"
+      "timestamp": "2025-10-20T22:31:11.169242"
     },
     {
       "category": "Module Imports",
@@ -108,7 +108,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.101618"
+      "timestamp": "2025-10-20T22:31:11.170800"
     },
     {
       "category": "Module Imports",
@@ -116,7 +116,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.101828"
+      "timestamp": "2025-10-20T22:31:11.171129"
     },
     {
       "category": "Module Imports",
@@ -124,7 +124,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.102024"
+      "timestamp": "2025-10-20T22:31:11.171341"
     },
     {
       "category": "Module Imports",
@@ -132,7 +132,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.102158"
+      "timestamp": "2025-10-20T22:31:11.171486"
     },
     {
       "category": "AI Models",
@@ -140,7 +140,7 @@
       "status": "FAIL",
       "message": "No module named 'pandas'",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.102765"
+      "timestamp": "2025-10-20T22:31:11.172085"
     },
     {
       "category": "AI Models",
@@ -148,7 +148,7 @@
       "status": "FAIL",
       "message": "No module named 'pandas'",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.103230"
+      "timestamp": "2025-10-20T22:31:11.172563"
     },
     {
       "category": "AI Models",
@@ -156,7 +156,7 @@
       "status": "FAIL",
       "message": "No module named 'pandas'",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.103629"
+      "timestamp": "2025-10-20T22:31:11.173011"
     },
     {
       "category": "Infrastructure",
@@ -164,7 +164,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.104281"
+      "timestamp": "2025-10-20T22:31:11.173616"
     },
     {
       "category": "Infrastructure",
@@ -172,7 +172,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.104896"
+      "timestamp": "2025-10-20T22:31:11.174160"
     },
     {
       "category": "Infrastructure",
@@ -180,7 +180,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.104912"
+      "timestamp": "2025-10-20T22:31:11.174175"
     },
     {
       "category": "Databases",
@@ -188,7 +188,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.117729"
+      "timestamp": "2025-10-20T22:31:11.186122"
     },
     {
       "category": "Databases",
@@ -196,7 +196,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.118161"
+      "timestamp": "2025-10-20T22:31:11.186461"
     },
     {
       "category": "Databases",
@@ -204,7 +204,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.118469"
+      "timestamp": "2025-10-20T22:31:11.186688"
     },
     {
       "category": "Databases",
@@ -212,7 +212,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.118684"
+      "timestamp": "2025-10-20T22:31:11.186892"
     },
     {
       "category": "Databases",
@@ -220,7 +220,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.118850"
+      "timestamp": "2025-10-20T22:31:11.187046"
     },
     {
       "category": "Configuration",
@@ -228,7 +228,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.118894"
+      "timestamp": "2025-10-20T22:31:11.187094"
     },
     {
       "category": "Configuration",
@@ -236,7 +236,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.118969"
+      "timestamp": "2025-10-20T22:31:11.187160"
     },
     {
       "category": "Configuration",
@@ -244,7 +244,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.118983"
+      "timestamp": "2025-10-20T22:31:11.187173"
     },
     {
       "category": "Configuration",
@@ -252,7 +252,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.119004"
+      "timestamp": "2025-10-20T22:31:11.187180"
     },
     {
       "category": "Configuration",
@@ -260,7 +260,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.119012"
+      "timestamp": "2025-10-20T22:31:11.187187"
     },
     {
       "category": "Configuration",
@@ -268,7 +268,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.119090"
+      "timestamp": "2025-10-20T22:31:11.187247"
     },
     {
       "category": "Configuration",
@@ -276,7 +276,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.119148"
+      "timestamp": "2025-10-20T22:31:11.187306"
     },
     {
       "category": "Configuration",
@@ -284,7 +284,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.119198"
+      "timestamp": "2025-10-20T22:31:11.187360"
     },
     {
       "category": "Telegram",
@@ -292,7 +292,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.119240"
+      "timestamp": "2025-10-20T22:31:11.187403"
     },
     {
       "category": "Telegram",
@@ -300,7 +300,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.119274"
+      "timestamp": "2025-10-20T22:31:11.187436"
     },
     {
       "category": "Telegram",
@@ -308,7 +308,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.119282"
+      "timestamp": "2025-10-20T22:31:11.187444"
     },
     {
       "category": "Telegram",
@@ -316,7 +316,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.434956"
+      "timestamp": "2025-10-20T22:31:11.503353"
     },
     {
       "category": "Telegram",
@@ -324,7 +324,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.435073"
+      "timestamp": "2025-10-20T22:31:11.503454"
     },
     {
       "category": "Filesystem",
@@ -332,7 +332,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436664"
+      "timestamp": "2025-10-20T22:31:11.504594"
     },
     {
       "category": "Filesystem",
@@ -340,7 +340,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436705"
+      "timestamp": "2025-10-20T22:31:11.504637"
     },
     {
       "category": "Filesystem",
@@ -348,7 +348,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436741"
+      "timestamp": "2025-10-20T22:31:11.504658"
     },
     {
       "category": "Filesystem",
@@ -356,7 +356,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436754"
+      "timestamp": "2025-10-20T22:31:11.504670"
     },
     {
       "category": "Filesystem",
@@ -364,7 +364,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436768"
+      "timestamp": "2025-10-20T22:31:11.504684"
     },
     {
       "category": "Filesystem",
@@ -372,7 +372,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436778"
+      "timestamp": "2025-10-20T22:31:11.504694"
     },
     {
       "category": "Filesystem",
@@ -380,7 +380,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436798"
+      "timestamp": "2025-10-20T22:31:11.504707"
     },
     {
       "category": "Filesystem",
@@ -388,7 +388,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436808"
+      "timestamp": "2025-10-20T22:31:11.504716"
     },
     {
       "category": "Filesystem",
@@ -396,7 +396,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436822"
+      "timestamp": "2025-10-20T22:31:11.504728"
     },
     {
       "category": "Filesystem",
@@ -404,7 +404,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436841"
+      "timestamp": "2025-10-20T22:31:11.504739"
     },
     {
       "category": "Filesystem",
@@ -412,7 +412,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436855"
+      "timestamp": "2025-10-20T22:31:11.504750"
     },
     {
       "category": "Filesystem",
@@ -420,7 +420,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436865"
+      "timestamp": "2025-10-20T22:31:11.504758"
     },
     {
       "category": "Filesystem",
@@ -428,7 +428,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436878"
+      "timestamp": "2025-10-20T22:31:11.504795"
     },
     {
       "category": "Filesystem",
@@ -436,7 +436,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436888"
+      "timestamp": "2025-10-20T22:31:11.504808"
     },
     {
       "category": "Filesystem",
@@ -444,7 +444,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436915"
+      "timestamp": "2025-10-20T22:31:11.504823"
     },
     {
       "category": "Filesystem",
@@ -452,7 +452,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436934"
+      "timestamp": "2025-10-20T22:31:11.504837"
     },
     {
       "category": "Filesystem",
@@ -460,7 +460,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436956"
+      "timestamp": "2025-10-20T22:31:11.504850"
     },
     {
       "category": "Filesystem",
@@ -468,7 +468,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.436990"
+      "timestamp": "2025-10-20T22:31:11.504871"
     },
     {
       "category": "Filesystem",
@@ -476,7 +476,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.437008"
+      "timestamp": "2025-10-20T22:31:11.504892"
     },
     {
       "category": "Filesystem",
@@ -484,7 +484,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.437022"
+      "timestamp": "2025-10-20T22:31:11.504904"
     },
     {
       "category": "Filesystem",
@@ -492,7 +492,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.437034"
+      "timestamp": "2025-10-20T22:31:11.504962"
     },
     {
       "category": "Main System",
@@ -500,7 +500,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.438787"
+      "timestamp": "2025-10-20T22:31:11.509193"
     },
     {
       "category": "Main System",
@@ -508,7 +508,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.438812"
+      "timestamp": "2025-10-20T22:31:11.509216"
     },
     {
       "category": "Main System",
@@ -516,7 +516,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.438824"
+      "timestamp": "2025-10-20T22:31:11.509228"
     },
     {
       "category": "Main System",
@@ -524,7 +524,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.438831"
+      "timestamp": "2025-10-20T22:31:11.509236"
     },
     {
       "category": "Main System",
@@ -532,7 +532,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.438839"
+      "timestamp": "2025-10-20T22:31:11.509243"
     },
     {
       "category": "Main System",
@@ -540,7 +540,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.438845"
+      "timestamp": "2025-10-20T22:31:11.509250"
     },
     {
       "category": "Main System",
@@ -548,7 +548,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.438852"
+      "timestamp": "2025-10-20T22:31:11.509258"
     },
     {
       "category": "Functionality",
@@ -556,7 +556,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.441977"
+      "timestamp": "2025-10-20T22:31:11.512696"
     },
     {
       "category": "Functionality",
@@ -564,7 +564,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.442464"
+      "timestamp": "2025-10-20T22:31:11.514270"
     },
     {
       "category": "Functionality",
@@ -572,7 +572,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.565118"
+      "timestamp": "2025-10-20T22:31:11.714312"
     },
     {
       "category": "Functionality",
@@ -580,7 +580,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.567030"
+      "timestamp": "2025-10-20T22:31:11.716256"
     },
     {
       "category": "Integration",
@@ -588,7 +588,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.567068"
+      "timestamp": "2025-10-20T22:31:11.716294"
     },
     {
       "category": "Integration",
@@ -596,7 +596,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.567077"
+      "timestamp": "2025-10-20T22:31:11.716303"
     },
     {
       "category": "Integration",
@@ -604,7 +604,7 @@
       "status": "PASS",
       "message": "",
       "critical": true,
-      "timestamp": "2025-10-19T02:25:43.567084"
+      "timestamp": "2025-10-20T22:31:11.716309"
     },
     {
       "category": "Documentation",
@@ -612,7 +612,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567120"
+      "timestamp": "2025-10-20T22:31:11.716358"
     },
     {
       "category": "Documentation",
@@ -620,7 +620,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567136"
+      "timestamp": "2025-10-20T22:31:11.716383"
     },
     {
       "category": "Documentation",
@@ -628,7 +628,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567158"
+      "timestamp": "2025-10-20T22:31:11.716403"
     },
     {
       "category": "Documentation",
@@ -636,7 +636,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567178"
+      "timestamp": "2025-10-20T22:31:11.716416"
     },
     {
       "category": "Documentation",
@@ -644,7 +644,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567191"
+      "timestamp": "2025-10-20T22:31:11.716434"
     },
     {
       "category": "Documentation",
@@ -652,7 +652,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567200"
+      "timestamp": "2025-10-20T22:31:11.716446"
     },
     {
       "category": "Documentation",
@@ -660,7 +660,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567211"
+      "timestamp": "2025-10-20T22:31:11.716458"
     },
     {
       "category": "Documentation",
@@ -668,7 +668,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567219"
+      "timestamp": "2025-10-20T22:31:11.716467"
     },
     {
       "category": "Documentation",
@@ -676,7 +676,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567230"
+      "timestamp": "2025-10-20T22:31:11.716485"
     },
     {
       "category": "Documentation",
@@ -684,7 +684,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567239"
+      "timestamp": "2025-10-20T22:31:11.716495"
     },
     {
       "category": "Documentation",
@@ -692,7 +692,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567250"
+      "timestamp": "2025-10-20T22:31:11.716508"
     },
     {
       "category": "Documentation",
@@ -700,7 +700,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567270"
+      "timestamp": "2025-10-20T22:31:11.716518"
     },
     {
       "category": "Documentation",
@@ -708,7 +708,7 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567283"
+      "timestamp": "2025-10-20T22:31:11.716540"
     },
     {
       "category": "Documentation",
@@ -716,9 +716,9 @@
       "status": "PASS",
       "message": "",
       "critical": false,
-      "timestamp": "2025-10-19T02:25:43.567291"
+      "timestamp": "2025-10-20T22:31:11.716551"
     }
   ],
-  "execution_time": 0.6684646606445312,
+  "execution_time": 0.7807915210723877,
   "gate_status": "GO"
 }
