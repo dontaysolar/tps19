@@ -33,6 +33,7 @@ try:
     from google_sheets_integration import GoogleSheetsIntegration
     from risk_management import RiskManager
     from nexus_coordinator import NexusCoordinator
+    from strategy_hub import StrategyHub
     from env_validation import print_validation_summary
     try:
         from websocket_feeds import WebSocketFeeds
@@ -103,6 +104,14 @@ class TPS19UnifiedSystem:
                 print("✅ NEXUS Coordinator initialized")
             except Exception as e:
                 print(f"⚠️ NEXUS Coordinator initialization failed (optional): {e}")
+
+            # Initialize Strategy Hub
+            try:
+                self.strategy_hub = StrategyHub()
+                self.system_components['strategy_hub'] = self.strategy_hub
+                print("✅ Strategy Hub initialized")
+            except Exception as e:
+                print(f"⚠️ Strategy Hub initialization failed (optional): {e}")
 
             # Initialize WebSocket Feeds (optional)
             try:
@@ -241,6 +250,30 @@ class TPS19UnifiedSystem:
                         )
                     except Exception as e:
                         print(f"⚠️ NEXUS combination error: {e}")
+
+                # Optional: StrategyHub could pick best among multiple strategy candidates
+                if hasattr(self, 'strategy_hub'):
+                    try:
+                        candidates = []
+                        if transformer_pred:
+                            candidates.append({
+                                'strategy': 'transformer',
+                                'pair': test_data['symbol'].replace('_', '/'),
+                                'signal': 'BUY' if transformer_pred.get('direction') == 'UP' else 'SELL' if transformer_pred.get('direction') == 'DOWN' else 'HOLD',
+                                'confidence': transformer_pred.get('confidence', 0.0)
+                            })
+                        if siul_result and siul_result.get('final_decision'):
+                            candidates.append({
+                                'strategy': 'siul',
+                                'pair': test_data['symbol'].replace('_', '/'),
+                                'signal': siul_result['final_decision'].get('decision', 'hold').upper(),
+                                'confidence': float(siul_result.get('confidence', 0.0))
+                            })
+                        best_candidate = self.strategy_hub.select(candidates)
+                        if best_candidate:
+                            print(f"🧭 StrategyHub selected: {best_candidate.get('strategy')} -> {best_candidate.get('signal')} ({best_candidate.get('confidence', 0.0):.0%})")
+                    except Exception as e:
+                        print(f"⚠️ StrategyHub selection error: {e}")
 
                 if siul_result and siul_result.get('final_decision'):
                     decision = siul_result['final_decision']
