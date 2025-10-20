@@ -43,11 +43,48 @@ class RiskManager:
         conn.close()
         
     def calculate_position_size(self, portfolio_value, risk_per_trade=0.02):
-        """Calculate optimal position size"""
-        max_risk_amount = portfolio_value * risk_per_trade
-        max_position_value = portfolio_value * self.max_position_size
-        
+        """Calculate optimal position size using base limits.
+
+        This function enforces global limits. For optimal sizing, prefer
+        calculate_kelly_position which adapts to strategy edge.
+        """
+        max_risk_amount = float(portfolio_value) * float(risk_per_trade)
+        max_position_value = float(portfolio_value) * float(self.max_position_size)
+
         return min(max_risk_amount, max_position_value)
+
+    def calculate_kelly_position(self, portfolio_value: float, win_rate: float, reward_risk: float, cap: float = 0.2) -> float:
+        """Calculate position size using the Kelly Criterion.
+
+        Kelly fraction f* = p - (1 - p) / R, where p is win_rate in [0,1]
+        and R is reward:risk ratio (>0). Result is capped to avoid extremes
+        and further limited by self.max_position_size.
+        """
+        p = max(0.0, min(1.0, float(win_rate)))
+        R = max(1e-6, float(reward_risk))
+        kelly_fraction = p - (1.0 - p) / R
+        kelly_fraction = max(0.0, min(cap, kelly_fraction))
+
+        base_limit_value = portfolio_value * self.max_position_size
+        kelly_value = portfolio_value * kelly_fraction
+        return min(base_limit_value, kelly_value)
+
+    def compute_drawdown(self, equity_curve):
+        """Compute current and max drawdown given an equity curve list."""
+        if not equity_curve:
+            return {"current_drawdown": 0.0, "max_drawdown": 0.0}
+
+        peak = equity_curve[0]
+        max_dd = 0.0
+        current_dd = 0.0
+        for v in equity_curve:
+            if v > peak:
+                peak = v
+            dd = 0.0 if peak == 0 else (peak - v) / peak
+            current_dd = dd
+            if dd > max_dd:
+                max_dd = dd
+        return {"current_drawdown": float(current_dd), "max_drawdown": float(max_dd)}
         
     def check_risk_limits(self, portfolio_value, daily_pnl):
         """Check if risk limits are exceeded"""

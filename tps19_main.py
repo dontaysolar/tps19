@@ -22,7 +22,12 @@ except ImportError as e:
 
 # Import Phase 1 AI/ML modules
 try:
-    from ai_models import LSTMPredictor, GANSimulator, SelfLearningPipeline
+    from ai_models import (
+        LSTMPredictor,
+        GANSimulator,
+        SelfLearningPipeline,
+        TransformerAnalyzer,
+    )
     from redis_integration import RedisIntegration
     from google_sheets_integration import GoogleSheetsIntegration
     print("✅ Phase 1 AI/ML modules imported successfully")
@@ -65,6 +70,14 @@ class TPS19UnifiedSystem:
             self.learning_pipeline = SelfLearningPipeline()
             self.system_components['learning'] = self.learning_pipeline
             print("✅ Self-Learning Pipeline initialized")
+
+            # Initialize Transformer analyzer
+            try:
+                self.transformer_analyzer = TransformerAnalyzer()
+                self.system_components['transformer'] = self.transformer_analyzer
+                print("✅ Transformer Analyzer initialized")
+            except Exception as e:
+                print(f"⚠️ Transformer Analyzer initialization failed (optional): {e}")
             
             # Initialize Redis (optional)
             try:
