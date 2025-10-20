@@ -116,7 +116,11 @@ class TPS19UnifiedSystem:
             
             # Initialize Redis (optional)
             try:
-                self.redis = RedisIntegration()
+                redis_host = os.environ.get('REDIS_HOST', 'localhost')
+                redis_port = int(os.environ.get('REDIS_PORT', '6379') or 6379)
+                redis_db = int(os.environ.get('REDIS_DB', '0') or 0)
+                redis_password = os.environ.get('REDIS_PASSWORD')
+                self.redis = RedisIntegration(host=redis_host, port=redis_port, db=redis_db, password=redis_password)
                 if self.redis.connected:
                     self.system_components['redis'] = self.redis
                     print("✅ Redis connected")
@@ -131,6 +135,12 @@ class TPS19UnifiedSystem:
                 if self.google_sheets.connected:
                     self.system_components['google_sheets'] = self.google_sheets
                     print("✅ Google Sheets connected")
+                    # Ensure a dashboard exists
+                    if not getattr(self.google_sheets, 'spreadsheet_id', None):
+                        try:
+                            self.google_sheets.create_dashboard('TPS19 Trading Dashboard')
+                        except Exception as e:
+                            print(f"⚠️ Could not create Google Sheets dashboard: {e}")
                 else:
                     print("⚠️ Google Sheets not available (optional)")
             except Exception as e:
@@ -154,6 +164,17 @@ class TPS19UnifiedSystem:
             # Start N8N service
             n8n_integration.start_n8n_service()
             
+            # Optional WebSocket subscription
+            try:
+                if hasattr(self, 'websocket_feeds'):
+                    ws_url = os.environ.get('WEBSOCKET_URL')
+                    if ws_url and not hasattr(self, '_ws_started'):
+                        self.websocket_feeds.subscribe_generic(ws_url, lambda msg: None)
+                        self._ws_started = True
+                        print(f"🔌 Subscribed to WebSocket: {ws_url}")
+            except Exception as e:
+                print(f"⚠️ WebSocket subscription error: {e}")
+
             # Main system loop
             while self.running:
                 # SIUL processing
@@ -212,12 +233,20 @@ class TPS19UnifiedSystem:
                     
                     # Send to N8N if significant decision
                     if decision.get('confidence', 0) > 0.7:
-                        n8n_integration.send_trade_signal({
+                        payload = {
                             'symbol': test_data['symbol'],
                             'action': decision['decision'],
                             'price': test_data['price'],
-                            'confidence': decision['confidence']
-                        })
+                            'confidence': decision['confidence'],
+                        }
+                        if recommended_pos_value is not None:
+                            payload['kelly_position_value'] = round(float(recommended_pos_value), 2)
+                        if transformer_pred:
+                            payload['transformer'] = {
+                                'direction': transformer_pred.get('direction'),
+                                'confidence': transformer_pred.get('confidence')
+                            }
+                        n8n_integration.send_trade_signal(payload)
                         
                 print(f"💓 TPS19 Unified System - {datetime.now()}")
                 print(f"🧠 SIUL Decision: {siul_result.get('final_decision', {}).get('decision', 'hold')}")
@@ -228,6 +257,19 @@ class TPS19UnifiedSystem:
                     print(f"🎛️ Combined: {combined.get('signal')} ({combined.get('confidence', 0.0):.0%})")
                 if recommended_pos_value is not None:
                     print(f"💰 Kelly position (value): ${recommended_pos_value:.2f}")
+
+                # Google Sheets overview update (light)
+                try:
+                    if hasattr(self, 'google_sheets') and self.google_sheets.connected and getattr(self.google_sheets, 'spreadsheet_id', None):
+                        ai_models_running = sum(1 for k in ['lstm', 'gan', 'learning', 'transformer'] if k in self.system_components)
+                        self.google_sheets.update_overview({
+                            'trading_status': 'Active' if self.running else 'Stopped',
+                            'strategies_active': 1,  # placeholder: SIUL
+                            'ai_models_running': ai_models_running,
+                            'last_trade': '',
+                        })
+                except Exception as e:
+                    print(f"⚠️ Google Sheets update failed: {e}")
                 
                 time.sleep(30)
                 
