@@ -14,11 +14,17 @@ REQUIRED_KEYS = [
 OPTIONAL_KEYS = [
     'TELEGRAM_BOT_TOKEN',
     'TELEGRAM_CHAT_ID',
+    'GOOGLE_SHEETS_CREDENTIALS_PATH',
+    'GOOGLE_SHEETS_SPREADSHEET_ID',
+    'REDIS_URL',
+    'REDIS_HOST',
+    'REDIS_PORT',
+    'REDIS_DB',
+    'WEBSOCKET_URL',
+    'PORTFOLIO_VALUE',
 ]
 
-OPTIONAL_PATHS = [
-    '/opt/tps19/config/google_credentials.json',
-]
+OPTIONAL_PATHS = ['/opt/tps19/config/google_credentials.json']
 
 
 def validate_required_env() -> Dict[str, List[str]]:
@@ -36,6 +42,11 @@ def validate_required_env() -> Dict[str, List[str]]:
     for path in OPTIONAL_PATHS:
         if not os.path.exists(path):
             warnings.append(f"Missing optional file: {path}")
+
+    # If an env-specified credentials path is provided, check it as well
+    creds_env = os.environ.get('GOOGLE_SHEETS_CREDENTIALS_PATH')
+    if creds_env and not os.path.exists(creds_env):
+        warnings.append(f"Missing optional file (from env GOOGLE_SHEETS_CREDENTIALS_PATH): {creds_env}")
 
     return {'missing': missing, 'warnings': warnings}
 

@@ -2,6 +2,7 @@
 """TPS19 Main Application - DEFINITIVE UNIFIED SYSTEM"""
 
 import sys, os, time, threading, signal
+from urllib.parse import urlparse
 from datetime import datetime
 
 # Add module paths
@@ -116,10 +117,23 @@ class TPS19UnifiedSystem:
             
             # Initialize Redis (optional)
             try:
-                redis_host = os.environ.get('REDIS_HOST', 'localhost')
-                redis_port = int(os.environ.get('REDIS_PORT', '6379') or 6379)
-                redis_db = int(os.environ.get('REDIS_DB', '0') or 0)
-                redis_password = os.environ.get('REDIS_PASSWORD')
+                # Support REDIS_URL or individual vars
+                redis_url = os.environ.get('REDIS_URL')
+                if redis_url:
+                    parsed = urlparse(redis_url)
+                    redis_host = parsed.hostname or 'localhost'
+                    redis_port = parsed.port or 6379
+                    # For URLs like redis://:password@host:port/db
+                    redis_password = parsed.password
+                    try:
+                        redis_db = int((parsed.path or '/0').lstrip('/'))
+                    except Exception:
+                        redis_db = 0
+                else:
+                    redis_host = os.environ.get('REDIS_HOST', 'localhost')
+                    redis_port = int(os.environ.get('REDIS_PORT', '6379') or 6379)
+                    redis_db = int(os.environ.get('REDIS_DB', '0') or 0)
+                    redis_password = os.environ.get('REDIS_PASSWORD')
                 self.redis = RedisIntegration(host=redis_host, port=redis_port, db=redis_db, password=redis_password)
                 if self.redis.connected:
                     self.system_components['redis'] = self.redis
