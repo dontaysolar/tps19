@@ -16,9 +16,10 @@ from dotenv import load_dotenv
 # Load environment
 load_dotenv()
 
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7289126201:AAHaWTLKxpddtbJ9oa4hGdvKaq0mypqU75Y')
-CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '7517400013')
+BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 STATUS_FILE = 'data/bot_status.json'
+TELEGRAM_CONFIGURED = bool(BOT_TOKEN and CHAT_ID)
 
 class TelegramController:
     """Simple Telegram bot controller"""
@@ -65,6 +66,8 @@ class TelegramController:
     
     def send_message(self, text, parse_mode='Markdown'):
         """Send message to Telegram"""
+        if not TELEGRAM_CONFIGURED:
+            return None
         try:
             url = f"{self.base_url}/sendMessage"
             data = {
@@ -408,12 +411,15 @@ _Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_
         """Main bot loop"""
         print("🤖 Telegram Controller starting...")
         
-        # Send startup message
-        self.send_message(
-            "🤖 *TPS19 Bot Online!*\n\n"
-            "✅ Ready to receive commands\n\n"
-            "_Reply with 'help' to see commands_"
-        )
+        # Send startup message if configured
+        if TELEGRAM_CONFIGURED:
+            self.send_message(
+                "🤖 *TPS19 Bot Online!*\n\n"
+                "✅ Ready to receive commands\n\n"
+                "_Reply with 'help' to see commands_"
+            )
+        else:
+            print("⚠️ Telegram not configured (TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID missing). Running without messaging.")
         
         while self.running:
             try:

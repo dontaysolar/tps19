@@ -42,12 +42,13 @@ class APEXNexusV2:
         self.paper_balance = float(os.environ.get('PAPER_START_BALANCE', '100') or 100)
         if not self.paper_enabled:
             self.exchange = ccxt.cryptocom({
-                'apiKey': os.environ['EXCHANGE_API_KEY'],
-                'secret': os.environ['EXCHANGE_API_SECRET'],
+                'apiKey': os.environ.get('EXCHANGE_API_KEY', ''),
+                'secret': os.environ.get('EXCHANGE_API_SECRET', ''),
                 'enableRateLimit': True
             })
         else:
-            self.exchange = None
+            # Use public client for market data even in paper mode
+            self.exchange = ccxt.cryptocom({'enableRateLimit': True})
             self.paper_state = {'balance': self.paper_balance, 'positions': {}}
         
         # Initialize all bots
@@ -161,7 +162,10 @@ class APEXNexusV2:
                             
                             # Check minimum
                             markets = self.exchange.load_markets()
-                            min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
+                            try:
+                                min_amount = markets[best['pair']]['limits']['amount']['min'] or 0.00001
+                            except Exception:
+                                min_amount = 0.00001
                             
                             if amount >= min_amount:
                                 # EXECUTE TRADE - TRY BOTH BUY AND SELL
