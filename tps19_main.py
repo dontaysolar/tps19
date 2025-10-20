@@ -30,6 +30,13 @@ try:
     )
     from redis_integration import RedisIntegration
     from google_sheets_integration import GoogleSheetsIntegration
+    from risk_management import RiskManager
+    from nexus_coordinator import NexusCoordinator
+    from env_validation import print_validation_summary
+    try:
+        from websocket_feeds import WebSocketFeeds
+    except Exception:
+        WebSocketFeeds = None  # type: ignore
     print("✅ Phase 1 AI/ML modules imported successfully")
     PHASE1_AVAILABLE = True
 except ImportError as e:
@@ -48,6 +55,7 @@ class TPS19UnifiedSystem:
             'patch_manager': patch_manager,
             'n8n': n8n_integration
         }
+        self._price_history = []
         
         # Initialize Phase 1 components if available
         if PHASE1_AVAILABLE:
@@ -78,6 +86,33 @@ class TPS19UnifiedSystem:
                 print("✅ Transformer Analyzer initialized")
             except Exception as e:
                 print(f"⚠️ Transformer Analyzer initialization failed (optional): {e}")
+
+            # Initialize Risk Manager
+            try:
+                self.risk_manager = RiskManager()
+                self.system_components['risk_manager'] = self.risk_manager
+                print("✅ Risk Manager initialized")
+            except Exception as e:
+                print(f"⚠️ Risk Manager initialization failed (optional): {e}")
+
+            # Initialize NEXUS Coordinator
+            try:
+                self.nexus_coordinator = NexusCoordinator()
+                self.system_components['nexus'] = self.nexus_coordinator
+                print("✅ NEXUS Coordinator initialized")
+            except Exception as e:
+                print(f"⚠️ NEXUS Coordinator initialization failed (optional): {e}")
+
+            # Initialize WebSocket Feeds (optional)
+            try:
+                if 'WebSocketFeeds' in globals() and WebSocketFeeds is not None:
+                    self.websocket_feeds = WebSocketFeeds()
+                    self.system_components['websocket_feeds'] = self.websocket_feeds
+                    print("✅ WebSocket Feeds ready")
+                else:
+                    print("⚠️ WebSocket Feeds not available (optional)")
+            except Exception as e:
+                print(f"⚠️ WebSocket Feeds initialization failed (optional): {e}")
             
             # Initialize Redis (optional)
             try:
@@ -109,6 +144,12 @@ class TPS19UnifiedSystem:
         try:
             print("🚀 Starting TPS19 Definitive Unified System...")
             self.running = True
+
+            # Environment validation summary
+            try:
+                print_validation_summary()
+            except Exception as e:
+                print(f"⚠️ Env validation unavailable: {e}")
             
             # Start N8N service
             n8n_integration.start_n8n_service()
@@ -125,6 +166,47 @@ class TPS19UnifiedSystem:
                 
                 siul_result = siul_core.process_unified_logic(test_data)
                 
+                # Update price history and run transformer prediction (optional)
+                try:
+                    self._price_history.append(float(test_data['price']))
+                    if len(self._price_history) > 500:
+                        self._price_history = self._price_history[-500:]
+                except Exception:
+                    pass
+
+                transformer_pred = None
+                if hasattr(self, 'transformer_analyzer') and self._price_history:
+                    try:
+                        transformer_pred = self.transformer_analyzer.predict_direction(self._price_history, horizon_steps=30)
+                    except Exception as e:
+                        print(f"⚠️ Transformer prediction error: {e}")
+
+                # Kelly-based position size (optional)
+                recommended_pos_value = None
+                if hasattr(self, 'risk_manager') and transformer_pred:
+                    try:
+                        p = float(transformer_pred.get('confidence', 0.0) or 0.0)
+                        portfolio_value = float(os.environ.get('PORTFOLIO_VALUE', '100') or 100)
+                        recommended_pos_value = self.risk_manager.calculate_kelly_position(
+                            portfolio_value=portfolio_value,
+                            win_rate=max(0.0, min(1.0, p)),
+                            reward_risk=1.5,
+                        )
+                    except Exception as e:
+                        print(f"⚠️ Kelly sizing error: {e}")
+
+                # NEXUS combined decision (optional)
+                combined = None
+                if hasattr(self, 'nexus_coordinator'):
+                    try:
+                        combined = self.nexus_coordinator.combine_decisions(
+                            siul_result.get('final_decision', {}) if isinstance(siul_result, dict) else {},
+                            transformer_pred,
+                            recommended_pos_value,
+                        )
+                    except Exception as e:
+                        print(f"⚠️ NEXUS combination error: {e}")
+
                 if siul_result and siul_result.get('final_decision'):
                     decision = siul_result['final_decision']
                     
@@ -140,6 +222,12 @@ class TPS19UnifiedSystem:
                 print(f"💓 TPS19 Unified System - {datetime.now()}")
                 print(f"🧠 SIUL Decision: {siul_result.get('final_decision', {}).get('decision', 'hold')}")
                 print(f"📊 Confidence: {siul_result.get('confidence', 0):.2%}")
+                if transformer_pred:
+                    print(f"🔎 Transformer: {transformer_pred.get('direction')} ({transformer_pred.get('confidence', 0.0):.0%})")
+                if combined:
+                    print(f"🎛️ Combined: {combined.get('signal')} ({combined.get('confidence', 0.0):.0%})")
+                if recommended_pos_value is not None:
+                    print(f"💰 Kelly position (value): ${recommended_pos_value:.2f}")
                 
                 time.sleep(30)
                 
