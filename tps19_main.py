@@ -39,6 +39,10 @@ try:
         from websocket_feeds import WebSocketFeeds
     except Exception:
         WebSocketFeeds = None  # type: ignore
+    try:
+        from strategies import FoxModeStrategy, MarketMakerStrategy, ArbitrageKingStrategy
+    except Exception:
+        FoxModeStrategy = MarketMakerStrategy = ArbitrageKingStrategy = None  # type: ignore
     print("✅ Phase 1 AI/ML modules imported successfully")
     PHASE1_AVAILABLE = True
 except ImportError as e:
@@ -112,6 +116,15 @@ class TPS19UnifiedSystem:
                 print("✅ Strategy Hub initialized")
             except Exception as e:
                 print(f"⚠️ Strategy Hub initialization failed (optional): {e}")
+
+            # Initialize advanced strategies (optional)
+            try:
+                self.fox_mode = FoxModeStrategy() if 'FoxModeStrategy' in globals() and FoxModeStrategy else None
+                self.market_maker = MarketMakerStrategy() if 'MarketMakerStrategy' in globals() and MarketMakerStrategy else None
+                self.arbitrage_king = ArbitrageKingStrategy() if 'ArbitrageKingStrategy' in globals() and ArbitrageKingStrategy else None
+                print("✅ Advanced strategies ready")
+            except Exception as e:
+                print(f"⚠️ Advanced strategies init failed (optional): {e}")
 
             # Initialize WebSocket Feeds (optional)
             try:
@@ -269,6 +282,16 @@ class TPS19UnifiedSystem:
                                 'signal': siul_result['final_decision'].get('decision', 'hold').upper(),
                                 'confidence': float(siul_result.get('confidence', 0.0))
                             })
+                        # Advanced strategies candidates (use simple anchors/momentum heuristics)
+                        if hasattr(self, 'fox_mode') and self.fox_mode and transformer_pred is not None:
+                            candidates.append(self.fox_mode.generate_signal(test_data['symbol'].replace('_', '/'), momentum=transformer_pred.get('momentum', 0.0) or 0.0, volatility=transformer_pred.get('volatility', 0.0) or 0.0))
+                        if hasattr(self, 'market_maker') and self.market_maker:
+                            anchor = self._price_history[-50] if len(self._price_history) >= 50 else (self._price_history[0] if self._price_history else 0.0)
+                            candidates.append(self.market_maker.generate_signal(test_data['symbol'].replace('_', '/'), last_price=float(test_data['price']), anchor_price=float(anchor)))
+                        if hasattr(self, 'arbitrage_king') and self.arbitrage_king:
+                            # Placeholder: compare current price vs last recorded price
+                            prev_price = self._price_history[-2] if len(self._price_history) >= 2 else float(test_data['price'])
+                            candidates.append(self.arbitrage_king.generate_signal(test_data['symbol'].replace('_', '/'), price_a=float(test_data['price']), price_b=float(prev_price)))
                         best_candidate = self.strategy_hub.select(candidates)
                         if best_candidate:
                             print(f"🧭 StrategyHub selected: {best_candidate.get('strategy')} -> {best_candidate.get('signal')} ({best_candidate.get('confidence', 0.0):.0%})")
