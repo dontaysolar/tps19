@@ -423,6 +423,9 @@ _Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}_
         
         while self.running:
             try:
+                if not TELEGRAM_CONFIGURED:
+                    time.sleep(3)
+                    continue
                 updates = self.get_updates()
                 
                 if updates and updates.get('ok'):

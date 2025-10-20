@@ -359,14 +359,51 @@ class TPS19UnifiedSystem:
                     except Exception as e:
                         print(f"⚠️ StrategyHub selection error: {e}")
 
-                if siul_result and siul_result.get('final_decision'):
-                    decision = siul_result['final_decision']
+                # Use StrategyHub selection if available, otherwise SIUL decision
+                selected_decision = None
+                if hasattr(self, 'strategy_hub'):
+                    try:
+                        selected = None
+                        candidates = []
+                        if transformer_pred:
+                            candidates.append({
+                                'strategy': 'transformer',
+                                'pair': test_data['symbol'].replace('_', '/'),
+                                'signal': 'BUY' if transformer_pred.get('direction') == 'UP' else 'SELL' if transformer_pred.get('direction') == 'DOWN' else 'HOLD',
+                                'confidence': transformer_pred.get('confidence', 0.0)
+                            })
+                        if siul_result and siul_result.get('final_decision'):
+                            candidates.append({
+                                'strategy': 'siul',
+                                'pair': test_data['symbol'].replace('_', '/'),
+                                'signal': siul_result['final_decision'].get('decision', 'hold').upper(),
+                                'confidence': float(siul_result.get('confidence', 0.0))
+                            })
+                        selected = self.strategy_hub.select(candidates) if candidates else None
+                        if selected:
+                            selected_decision = {
+                                'decision': selected.get('signal', 'HOLD').lower(),
+                                'confidence': float(selected.get('confidence', 0.0)),
+                            }
+                    except Exception:
+                        selected_decision = None
+
+                decision_source = 'SIUL'
+                if not selected_decision and siul_result and siul_result.get('final_decision'):
+                    selected_decision = siul_result['final_decision']
+                    decision_source = 'SIUL'
+                elif selected_decision:
+                    decision_source = 'StrategyHub'
+
+                if selected_decision:
+                    decision = selected_decision
                     
                     # Send to N8N if significant decision
                     if decision.get('confidence', 0) > 0.7:
                         # Compliance gating
                         try:
-                            gate = self.compliance_gate.can_trade(self.state if hasattr(self, 'state') else {}, float(decision.get('confidence', 0.0))) if hasattr(self, 'compliance_gate') else {'allow': True}
+                            notional = float(recommended_pos_value or float(os.environ.get('MAX_POSITION_USD', '1.0') or 1.0))
+                            gate = self.compliance_gate.can_trade(self.state if hasattr(self, 'state') else {}, float(decision.get('confidence', 0.0)), notional_value=notional) if hasattr(self, 'compliance_gate') else {'allow': True}
                             if not gate.get('allow', True):
                                 print(f"🛂 Trade blocked by compliance: {gate.get('reason')}")
                                 continue
@@ -377,6 +414,7 @@ class TPS19UnifiedSystem:
                             'action': decision['decision'],
                             'price': test_data['price'],
                             'confidence': decision['confidence'],
+                            'source': decision_source,
                         }
                         if recommended_pos_value is not None:
                             payload['kelly_position_value'] = round(float(recommended_pos_value), 2)

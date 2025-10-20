@@ -56,4 +56,6 @@ class OrderExecutor:
         return {'status': 'error', 'error': 'invalid_config'}
 
     def _last_price(self, _pair: str) -> float:
-        return float(price_hint)  # fallback, should be replaced by market data source
+        # No market data source is wired here; callers should provide price_hint.
+        # Return 0.0 so that min_amount/notional checks can safely reject.
+        return 0.0
