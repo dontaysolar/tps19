@@ -127,6 +127,8 @@ class TelegramController:
             self.cmd_ai_toggle(False)
         elif text in ['/stats', 'stats', 'statistics']:
             self.cmd_stats()
+        elif text in ['mode paper', 'mode real']:
+            self.cmd_mode(text)
         elif text in ['paper on', 'paper off', 'paper status']:
             self.cmd_paper(text)
         elif text in ['transformer status', 'kelly status']:
@@ -169,6 +171,10 @@ class TelegramController:
 • `transformer status` - Last transformer direction/confidence
 • `kelly status` - Last Kelly position suggestion
 
+🛠️ *Mode & Config:*
+• `mode paper` - Switch to paper mode (requires restart)
+• `mode real` - Switch to real mode (requires restart)
+
 🔧 *Other:*
 • `reset stats` - Reset statistics
 • `help` - Show this message
@@ -181,6 +187,14 @@ class TelegramController:
 _Reply with any command to control your bot!_
 """
         self.send_message(help_text)
+
+    def cmd_mode(self, text):
+        mode = 'paper' if 'paper' in text else 'real'
+        try:
+            os.environ['TRADING_MODE'] = mode
+            self.send_message(f"🛠️ TRADING_MODE set to: {mode}\n\nRestart the bot to apply.")
+        except Exception:
+            self.send_message("❌ Failed to set mode")
     
     def cmd_status(self):
         """Show bot status"""

@@ -33,6 +33,7 @@ from enhanced_notifications import EnhancedNotifications
 
 import ccxt
 from compliance import ComplianceGate
+from secrets import get_secret
 from env_validation import ensure_mode_requirements_or_exit
 
 class APEXNexusV2:
@@ -41,6 +42,16 @@ class APEXNexusV2:
         print("="*80)
         
         # Initialize trading mode
+        # Resolve secrets via Secret Manager if missing
+        try:
+            for key in ['EXCHANGE_API_KEY', 'EXCHANGE_API_SECRET', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']:
+                if not os.environ.get(key):
+                    v = get_secret(key)
+                    if v:
+                        os.environ[key] = v
+        except Exception:
+            pass
+
         trading_mode = os.environ.get('TRADING_MODE', 'paper').lower()
         ensure_mode_requirements_or_exit(trading_mode)
         self.paper_enabled = trading_mode != 'real'

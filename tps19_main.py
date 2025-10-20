@@ -36,6 +36,7 @@ try:
     from strategy_hub import StrategyHub
     from compliance import ComplianceGate
     from env_validation import print_validation_summary, ensure_mode_requirements_or_exit
+    from secrets import get_secret
     # Market data fallback
     try:
         from market.market_feed import market_feed
@@ -244,6 +245,16 @@ class TPS19UnifiedSystem:
                 print(f"⚠️ Env validation unavailable: {e}")
             
             # Start N8N service
+            # Set secrets from Secret Manager if configured
+            try:
+                for key in ['EXCHANGE_API_KEY', 'EXCHANGE_API_SECRET', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID']:
+                    if not os.environ.get(key):
+                        v = get_secret(key)
+                        if v:
+                            os.environ[key] = v
+            except Exception:
+                pass
+
             n8n_integration.start_n8n_service()
             
             # Optional WebSocket subscription (wire handler to price history)

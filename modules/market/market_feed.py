@@ -48,9 +48,13 @@ class CryptoComMarketFeed:
         try:
             import ccxt  # lazy import
             ex = ccxt.cryptocom({'enableRateLimit': True})
-            ticker = ex.fetch_ticker(symbol.replace('_', '/'))
+            sym = symbol.replace('_', '/')
+            ticker = ex.fetch_ticker(sym)
             price = float(ticker['last'])
-            return [{'symbol': symbol, 'close': price, 'volume': float(ticker.get('baseVolume') or 0.0), 'exchange': 'crypto.com'}]
+            # Basic sanity checks
+            if price <= 0 or price != price:  # NaN check
+                return []
+            return [{'symbol': sym, 'close': price, 'volume': float(ticker.get('baseVolume') or 0.0), 'exchange': 'crypto.com'}]
         except Exception:
             try:
                 price_env = os.environ.get('LAST_PRICE')
