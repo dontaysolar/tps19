@@ -10,6 +10,8 @@ class RiskManager:
         self.db_path = "/opt/tps19/data/databases/risk.db"
         self.max_position_size = 0.1  # 10% max position size
         self.max_daily_loss = 0.05    # 5% max daily loss
+        self.max_symbol_exposure = 0.3  # 30% per-symbol cap
+        self.exposures = {}  # symbol -> value_usd
         self.init_database()
         
     def init_database(self):
@@ -90,11 +92,24 @@ class RiskManager:
         if daily_loss_pct > self.max_daily_loss:
             reasons.append("daily_loss_limit_breached")
 
+        # Per-symbol exposure cap check
+        symbol = proposed_order.get('symbol')
+        if symbol:
+            current_exposure = self.exposures.get(symbol, 0.0)
+            projected = current_exposure + value_usd
+            projected_pct = (projected / portfolio_value) if portfolio_value > 0 else 0.0
+            if projected_pct > self.max_symbol_exposure:
+                reasons.append(f"symbol_exposure_cap: {projected_pct:.2%} > {self.max_symbol_exposure:.0%}")
+
         return {
             "allowed": len(reasons) == 0,
             "reasons": reasons,
             "max_allowed_value_usd": max_value
         }
+
+    def update_exposure(self, symbol: str, delta_value_usd: float):
+        """Adjust exposure after fills or cancellations."""
+        self.exposures[symbol] = self.exposures.get(symbol, 0.0) + float(delta_value_usd)
         
     def calculate_var(self, returns, confidence=0.95):
         """Calculate Value at Risk"""

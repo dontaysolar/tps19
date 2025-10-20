@@ -116,6 +116,21 @@ class TPS19UnifiedSystem:
                 })
 
                 decision = siul_result.get('final_decision', {})
+                # Memory: store decision context
+                try:
+                    from brain.ai_memory import ai_memory
+                    ai_memory.store_decision(
+                        decision_id=siul_result.get('chain_id', f"dec_{int(time.time())}"),
+                        personality='GUARDIAN',
+                        decision_type=decision.get('decision', 'hold'),
+                        context={
+                            'input': perceived,
+                            'siul': siul_result,
+                        },
+                        confidence=decision.get('confidence', 0.0)
+                    )
+                except Exception as e:
+                    print(f"⚠️ AI memory store error: {e}")
 
                 # Act: risk gate + route to N8N if confidence high
                 action = decision.get('decision', 'hold')
