@@ -37,12 +37,18 @@ class APEXNexusV2:
         print("🚀 APEX NEXUS V2.0 - PRODUCTION SYSTEM")
         print("="*80)
         
-        # Initialize exchange
-        self.exchange = ccxt.cryptocom({
-            'apiKey': os.environ['EXCHANGE_API_KEY'],
-            'secret': os.environ['EXCHANGE_API_SECRET'],
-            'enableRateLimit': True
-        })
+        # Initialize exchange or paper trading
+        self.paper_enabled = os.environ.get('PAPER_TRADING', 'true').lower() in ('1', 'true', 'yes')
+        self.paper_balance = float(os.environ.get('PAPER_START_BALANCE', '100') or 100)
+        if not self.paper_enabled:
+            self.exchange = ccxt.cryptocom({
+                'apiKey': os.environ['EXCHANGE_API_KEY'],
+                'secret': os.environ['EXCHANGE_API_SECRET'],
+                'enableRateLimit': True
+            })
+        else:
+            self.exchange = None
+            self.paper_state = {'balance': self.paper_balance, 'positions': {}}
         
         # Initialize all bots
         print("Loading God-Level AI...")
@@ -135,7 +141,7 @@ class APEXNexusV2:
                     # Check with conflict resolver - LOWERED THRESHOLD
                     can_trade = self.conflict_resolver.can_open_position(best['pair'])
                     if can_trade['allowed'] and best['confidence'] >= 0.65:
-                        # EXECUTE REAL TRADE
+                        # EXECUTE TRADE (real or paper)
                         try:
                             ticker = self.exchange.fetch_ticker(best['pair'])
                             price = ticker['last']
@@ -161,7 +167,19 @@ class APEXNexusV2:
                                 # EXECUTE TRADE - TRY BOTH BUY AND SELL
                                 if best['signal'] in ['UP', 'BUY']:
                                     print(f"🔥 EXECUTING BUY ORDER...")
-                                    order = self.exchange.create_market_buy_order(best['pair'], amount)
+                                    if self.paper_enabled:
+                                        cost = amount * price
+                                        if cost <= self.paper_state['balance']:
+                                            self.paper_state['balance'] -= cost
+                                            self.paper_state['positions'][best['pair']] = {
+                                                'entry_price': price,
+                                                'amount': amount,
+                                            }
+                                            order = {'id': f'paper-{int(time.time())}', 'status': 'filled'}
+                                        else:
+                                            order = {'id': 'paper-rejected', 'status': 'rejected'}
+                                    else:
+                                        order = self.exchange.create_market_buy_order(best['pair'], amount)
                                     print(f"✅ BOUGHT {amount:.6f} {base} @ ${price:.2f}")
                                     print(f"   Order ID: {order.get('id', 'N/A')}")
                                     self.send_telegram(f"✅ TRADE EXECUTED\n\nBUY {amount:.6f} {base}\nPrice: ${price:.2f}\nValue: ${amount_usd:.2f}\nConfidence: {best['confidence']*100:.0f}%\nOrder: {order.get('id', 'N/A')}")
@@ -169,7 +187,18 @@ class APEXNexusV2:
                                     # Only sell if we have a position
                                     pos = self.state['positions'][best['pair']]
                                     print(f"🔥 EXECUTING SELL ORDER...")
-                                    order = self.exchange.create_market_sell_order(best['pair'], pos['amount'])
+                                    if self.paper_enabled:
+                                        ppos = self.paper_state['positions'].get(best['pair'])
+                                        if ppos:
+                                            proceeds = ppos['amount'] * price
+                                            pnl = (price - ppos['entry_price']) * ppos['amount']
+                                            self.paper_state['balance'] += proceeds
+                                            del self.paper_state['positions'][best['pair']]
+                                            order = {'id': f'paper-{int(time.time())}', 'status': 'filled', 'pnl': pnl}
+                                        else:
+                                            order = {'id': 'paper-rejected', 'status': 'rejected'}
+                                    else:
+                                        order = self.exchange.create_market_sell_order(best['pair'], pos['amount'])
                                     print(f"✅ SOLD {pos['amount']:.6f} {base} @ ${price:.2f}")
                                     self.send_telegram(f"✅ SOLD\n\n{pos['amount']:.6f} {base}\nPrice: ${price:.2f}\nEntry: ${pos['entry_price']:.2f}\nP&L: ${(price - pos['entry_price']) * pos['amount']:.2f}")
                                     del self.state['positions'][best['pair']]

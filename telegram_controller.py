@@ -124,6 +124,10 @@ class TelegramController:
             self.cmd_ai_toggle(False)
         elif text in ['/stats', 'stats', 'statistics']:
             self.cmd_stats()
+        elif text in ['paper on', 'paper off', 'paper status']:
+            self.cmd_paper(text)
+        elif text in ['transformer status', 'kelly status']:
+            self.cmd_models(text)
         elif text in ['reset', 'reset stats']:
             self.cmd_reset_stats()
         else:
@@ -152,6 +156,15 @@ class TelegramController:
 🧠 *AI Controls:*
 • `ai on` - Enable AI predictions
 • `ai off` - Disable AI predictions
+
+🧪 *Paper Trading:*
+• `paper on` - Enable paper trading
+• `paper off` - Disable paper trading
+• `paper status` - Show paper trading status
+
+🔎 *Model Status:*
+• `transformer status` - Last transformer direction/confidence
+• `kelly status` - Last Kelly position suggestion
 
 🔧 *Other:*
 • `reset stats` - Reset statistics
@@ -188,6 +201,45 @@ AI Models: {ai_emoji} {'ON' if self.status['ai_enabled'] else 'OFF'}
 _Last updated: {self.status.get('last_update', 'Never')}_
 """
         self.send_message(text)
+
+    def cmd_paper(self, text):
+        """Toggle/show paper trading status (file-based flag)."""
+        flag_path = 'data/paper_trading.enabled'
+        os.makedirs('data', exist_ok=True)
+        if text == 'paper on':
+            with open(flag_path, 'w') as f:
+                f.write('1')
+            self.send_message("🧪 Paper trading: ENABLED")
+        elif text == 'paper off':
+            if os.path.exists(flag_path):
+                os.remove(flag_path)
+            self.send_message("🧪 Paper trading: DISABLED")
+        else:
+            enabled = os.path.exists(flag_path)
+            self.send_message(f"🧪 Paper trading status: {'ENABLED' if enabled else 'DISABLED'}")
+
+    def cmd_models(self, text):
+        """Show last transformer and Kelly calculations from system status file."""
+        status_file = 'data/system_status.json'
+        try:
+            if os.path.exists(status_file):
+                with open(status_file, 'r') as f:
+                    s = json.load(f)
+            else:
+                s = {}
+        except Exception:
+            s = {}
+
+        if text == 'transformer status':
+            t = s.get('transformer', {})
+            self.send_message(
+                f"🔎 Transformer\n\nDirection: {t.get('direction', 'UNKNOWN')}\nConfidence: {t.get('confidence', 0):.2f}"
+            )
+        else:
+            k = s.get('kelly', {})
+            self.send_message(
+                f"💰 Kelly Sizing\n\nPosition Value: ${k.get('position_value', 0):.2f}\nWin Rate Proxy: {k.get('win_rate', 0):.2f}"
+            )
     
     def cmd_balance(self):
         """Show balance info"""

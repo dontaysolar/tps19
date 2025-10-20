@@ -272,6 +272,27 @@ class TPS19UnifiedSystem:
                 if recommended_pos_value is not None:
                     print(f"💰 Kelly position (value): ${recommended_pos_value:.2f}")
 
+                # Persist lightweight system status for Telegram queries
+                try:
+                    os.makedirs('data', exist_ok=True)
+                    status_payload = {
+                        'transformer': {
+                            'direction': transformer_pred.get('direction') if transformer_pred else None,
+                            'confidence': transformer_pred.get('confidence') if transformer_pred else None,
+                        },
+                        'kelly': {
+                            'position_value': float(recommended_pos_value) if recommended_pos_value is not None else 0.0,
+                            'win_rate': float(transformer_pred.get('confidence', 0.0)) if transformer_pred else 0.0,
+                        },
+                        'combined': combined or {},
+                        'timestamp': datetime.now().isoformat(),
+                    }
+                    with open('data/system_status.json', 'w') as f:
+                        import json as _json
+                        _json.dump(status_payload, f, indent=2)
+                except Exception as _e:
+                    pass
+
                 # Google Sheets overview update (light)
                 try:
                     if hasattr(self, 'google_sheets') and self.google_sheets.connected and getattr(self.google_sheets, 'spreadsheet_id', None):
