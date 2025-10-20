@@ -41,6 +41,7 @@ class RedisIntegration:
     def _connect(self):
         """Connect to Redis server"""
         try:
+            # Support TLS via rediss scheme/env handled by caller; enforce timeouts
             self.client = redis.Redis(
                 host=self.host,
                 port=self.port,

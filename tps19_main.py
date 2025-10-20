@@ -35,7 +35,7 @@ try:
     from nexus_coordinator import NexusCoordinator
     from strategy_hub import StrategyHub
     from compliance import ComplianceGate
-    from env_validation import print_validation_summary
+    from env_validation import print_validation_summary, ensure_mode_requirements_or_exit
     try:
         from websocket_feeds import WebSocketFeeds
     except Exception:
@@ -203,18 +203,32 @@ class TPS19UnifiedSystem:
             # Environment validation summary
             try:
                 print_validation_summary()
+                trading_mode = os.environ.get('TRADING_MODE', 'paper')
+                ensure_mode_requirements_or_exit(trading_mode)
             except Exception as e:
                 print(f"⚠️ Env validation unavailable: {e}")
             
             # Start N8N service
             n8n_integration.start_n8n_service()
             
-            # Optional WebSocket subscription
+            # Optional WebSocket subscription (wire handler to price history)
             try:
                 if hasattr(self, 'websocket_feeds'):
                     ws_url = os.environ.get('WEBSOCKET_URL')
                     if ws_url and not hasattr(self, '_ws_started'):
-                        self.websocket_feeds.subscribe_generic(ws_url, lambda msg: None)
+                        def _on_ws(msg: str):
+                            # Minimal parser for price-only JSON {'p': float}
+                            try:
+                                import json as _json
+                                data = _json.loads(msg)
+                                p = data.get('p') or data.get('price')
+                                if isinstance(p, (int, float)):
+                                    self._price_history.append(float(p))
+                                    if len(self._price_history) > 500:
+                                        self._price_history = self._price_history[-500:]
+                            except Exception:
+                                pass
+                        self.websocket_feeds.subscribe_generic(ws_url, _on_ws)
                         self._ws_started = True
                         print(f"🔌 Subscribed to WebSocket: {ws_url}")
             except Exception as e:

@@ -7,12 +7,12 @@ ZERO mock data, ZERO tolerance for errors
 import os, sys, time, json, requests
 from datetime import datetime
 
-# Load environment
-with open('.env') as f:
-    for line in f:
-        if '=' in line and not line.startswith('#'):
-            k,v = line.strip().split('=',1)
-            os.environ[k] = v
+# Load environment (optional)
+try:
+    from dotenv import load_dotenv  # type: ignore
+    load_dotenv()
+except Exception:
+    pass
 
 sys.path.insert(0, 'bots')
 

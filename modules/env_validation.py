@@ -66,3 +66,23 @@ def print_validation_summary() -> None:
             print(f"   - {w}")
     else:
         print("✅ Optional config present")
+
+def get_missing_required() -> List[str]:
+    """Return the list of missing required environment variables."""
+    return validate_required_env().get('missing', [])
+
+def ensure_mode_requirements_or_exit(mode: str) -> None:
+    """Fail fast if running in real mode without required environment vars.
+
+    In 'real' mode we require exchange credentials to be present.
+    In 'paper' mode we allow missing credentials.
+    """
+    mode_normalized = (mode or '').strip().lower()
+    if mode_normalized == 'real':
+        missing = get_missing_required()
+        if missing:
+            print("❌ Missing required environment for REAL mode:")
+            for k in missing:
+                print(f"   - {k}")
+            import sys as _sys
+            _sys.exit(1)
