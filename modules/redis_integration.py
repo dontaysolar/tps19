@@ -17,7 +17,7 @@ except ImportError:
 class RedisIntegration:
     """Redis integration for real-time data storage and pub/sub"""
     
-    def __init__(self, host='localhost', port=6379, db=0, password=None):
+    def __init__(self, host='localhost', port=6379, db=0, password=None, use_ssl: bool = False):
         """Initialize Redis connection
         
         Args:
@@ -30,6 +30,7 @@ class RedisIntegration:
         self.port = port
         self.db = db
         self.password = password
+        self.use_ssl = use_ssl
         
         self.client = None
         self.pubsub = None
@@ -49,7 +50,8 @@ class RedisIntegration:
                 password=self.password,
                 decode_responses=True,
                 socket_connect_timeout=5,
-                socket_keepalive=True
+                socket_keepalive=True,
+                ssl=self.use_ssl
             )
             
             # Test connection
