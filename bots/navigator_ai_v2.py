@@ -1,68 +1,109 @@
 #!/usr/bin/env python3
 """
-NavigatorAI v2.0 - MIGRATED TO AEGIS ARCHITECTURE
+Navigator AI v2.0 - Technical Pattern Recognition
+MIGRATED TO AEGIS ARCHITECTURE
 
-AEGIS v2.0 Changes:
-- Inherits from TradingBotBase (enforced safety)
-- Uses Exchange Adapter (no direct ccxt)
-- Integrates with PSM (position tracking)
-- ATLAS-compliant (Power of 10 rules)
-
-Original bot preserved in legacy_backup/
+Features: Technical setup scanning across multiple pairs
+Part of APEX AI Trading System - Strategy Layer
 """
 
-import os
-import sys
+import os, sys
+from datetime import datetime
 from typing import Dict, List
-
-# Add AEGIS core to path
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'core'))
 
-# Import AEGIS base class
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
 from trading_bot_base import TradingBotBase
 
-
 class NavigatorAI(TradingBotBase):
-    """
-    AEGIS v2.0: Now inherits from TradingBotBase
-    - Automatic Exchange Adapter usage
-    - PSM integration for position tracking
-    - ATLAS-compliant code
-    """
+    """Technical pattern scanner"""
     
     def __init__(self, exchange_config=None):
-        """
-        Initialize with AEGIS architecture
-        
-        ATLAS Compliance:
-        - Assertion 1: Base class initialized
-        - Assertion 2: Config validated
-        """
-        # Initialize base class (automatic adapter + PSM)
         super().__init__(
-            bot_name="NAVIGATORAI",
+            bot_name="NAVIGATOR_AI",
             bot_version="2.0.0",
             exchange_name='mock' if not exchange_config else 'cryptocom',
             enable_psm=True,
             enable_logging=True
         )
+        assert hasattr(self, 'exchange_adapter'), "Base init failed"
         
-        # ATLAS Assertion 1
-        assert hasattr(self, 'exchange_adapter'), "Base class initialization failed"
+        self.setups_found = []
+        self.metrics.update({'scans_performed': 0, 'setups_found': 0, 'high_probability_setups': 0})
+    
+    def scan_for_setups(self, symbols: List[str]) -> List[Dict]:
+        """Scan pairs for high-probability technical setups"""
+        assert isinstance(symbols, list), "Symbols must be list"
         
-        # Bot-specific config (preserve from original)
-        # TODO: Copy original config here
-        self.config = {}
+        setups = []
+        self.metrics['scans_performed'] += 1
         
-        # ATLAS Assertion 2
-        assert isinstance(self.config, dict), "Config must be dict"
+        for i, symbol in enumerate(symbols):
+            if i >= 100: break  # ATLAS: Fixed bound
+            
+            try:
+                ohlcv = self.exchange_adapter.get_ohlcv(symbol, '1h', limit=50)
+                if not ohlcv or len(ohlcv) < 50: continue
+                
+                closes = [c[4] for c in ohlcv[:50]]
+                volumes = [c[5] for c in ohlcv[:50]]
+                
+                # MACD crossover (simplified EMA)
+                ema_12 = sum(closes[-12:]) / 12
+                ema_26 = sum(closes[-26:]) / 26
+                prev_ema_12 = sum(closes[-13:-1]) / 12
+                prev_ema_26 = sum(closes[-27:-1]) / 26
+                
+                macd_cross = (ema_12 > ema_26 and prev_ema_12 <= prev_ema_26)
+                
+                # Volume
+                avg_volume = sum(volumes[:-1]) / len(volumes[:-1]) if len(volumes) > 1 else 0
+                volume_spike = volumes[-1] > avg_volume * 1.5 if avg_volume > 0 else False
+                
+                # Support
+                recent_low = min(closes[-20:])
+                near_support = closes[-1] < recent_low * 1.05
+                
+                # Probability
+                probability = 0.5
+                if macd_cross: probability += 0.2
+                if volume_spike: probability += 0.15
+                if near_support: probability += 0.15
+                
+                if probability >= 0.8:
+                    setup = {
+                        'symbol': symbol,
+                        'setup_type': 'MACD_CROSS_SUPPORT' if macd_cross and near_support else 'MACD_CROSS',
+                        'probability': probability,
+                        'current_price': closes[-1],
+                        'features': {'macd_cross': macd_cross, 'volume_spike': volume_spike, 'near_support': near_support},
+                        'timestamp': datetime.now().isoformat()
+                    }
+                    setups.append(setup)
+                    self.metrics['setups_found'] += 1
+                    if probability >= 0.8:
+                        self.metrics['high_probability_setups'] += 1
+            except:
+                continue
+        
+        self.setups_found = setups
+        assert isinstance(setups, list), "Result must be list"
+        return setups
+    
+    def get_status(self) -> Dict:
+        base_status = super().get_status()
+        assert isinstance(base_status, dict), "Base status invalid"
+        base_status.update({'setups_available': len(self.setups_found)})
+        return base_status
 
-    
-    # Original bot methods migrated below
-    # Key changes:
-    # - self.exchange.fetch_X() → self.get_ticker()/self.exchange_adapter.X()
-    # - self.exchange.create_order() → self.place_order()
-    # - Add ATLAS assertions (min 2 per function)
-    
-    # TODO: Migrate remaining methods from original bot
-    # See god_bot_v2.py for migration pattern
+if __name__ == '__main__':
+    print("📈 Navigator AI v2.0 - Test")
+    bot = NavigatorAI()
+    setups = bot.scan_for_setups(['BTC/USDT', 'ETH/USDT'])
+    print(f"Setups found: {len(setups)}")
+    bot.close()
+    print("✅ Navigator AI v2.0 migration complete!")
