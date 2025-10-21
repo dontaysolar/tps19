@@ -1,0 +1,138 @@
+{
+  "test_suite": "AEGIS AID v2.0 Comprehensive Test Suite",
+  "timestamp": "2025-10-21T00:50:57.714767",
+  "total_tests": 18,
+  "passed_tests": 18,
+  "failed_tests": 0,
+  "critical_failures": 0,
+  "success_rate": 100.0,
+  "total_execution_time": 1.990687,
+  "test_results": [
+    {
+      "test_name": "Dependency_test_python_version",
+      "passed": true,
+      "execution_time": 4.0531158447265625e-06,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Dependency_test_required_modules",
+      "passed": true,
+      "execution_time": 1.2874603271484375e-05,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Dependency_test_import_functionality",
+      "passed": true,
+      "execution_time": 0.5388693809509277,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Configuration_test_config_files_exist",
+      "passed": true,
+      "execution_time": 0.00012373924255371094,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Configuration_test_config_validation",
+      "passed": true,
+      "execution_time": 9.751319885253906e-05,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Configuration_test_environment_variables",
+      "passed": true,
+      "execution_time": 3.7670135498046875e-05,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Security_test_credential_security",
+      "passed": true,
+      "execution_time": 0.00012874603271484375,
+      "error_message": "",
+      "critical": true
+    },
+    {
+      "test_name": "Security_test_file_permissions",
+      "passed": true,
+      "execution_time": 6.461143493652344e-05,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Security_test_security_modules",
+      "passed": true,
+      "execution_time": 9.751319885253906e-05,
+      "error_message": "",
+      "critical": true
+    },
+    {
+      "test_name": "Performance_test_system_resources",
+      "passed": true,
+      "execution_time": 0.013061285018920898,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Performance_test_memory_usage",
+      "passed": true,
+      "execution_time": 0.00012874603271484375,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Performance_test_cpu_usage",
+      "passed": true,
+      "execution_time": 1.000596046447754,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Integration_test_system_initialization",
+      "passed": true,
+      "execution_time": 0.3657083511352539,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Integration_test_component_integration",
+      "passed": true,
+      "execution_time": 0.03738212585449219,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Integration_test_data_flow",
+      "passed": true,
+      "execution_time": 4.1961669921875e-05,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Autonomous_test_autonomous_monitor",
+      "passed": true,
+      "execution_time": 0.007319211959838867,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Autonomous_test_config_healer",
+      "passed": true,
+      "execution_time": 0.00673675537109375,
+      "error_message": "",
+      "critical": false
+    },
+    {
+      "test_name": "Autonomous_test_performance_optimizer",
+      "passed": true,
+      "execution_time": 0.006356477737426758,
+      "error_message": "",
+      "critical": false
+    }
+  ]
+}
