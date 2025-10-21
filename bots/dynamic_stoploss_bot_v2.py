@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GODBot v2.0 - MIGRATED TO AEGIS ARCHITECTURE
+DynamicStopLossBot v2.0 - MIGRATED TO AEGIS ARCHITECTURE
 
 AEGIS v2.0 Changes:
 - Inherits from TradingBotBase (enforced safety)
@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'cor
 from trading_bot_base import TradingBotBase
 
 
-class GODBot(TradingBotBase):
+class DynamicStopLossBot(TradingBotBase):
     """
     AEGIS v2.0: Now inherits from TradingBotBase
     - Automatic Exchange Adapter usage
@@ -40,7 +40,7 @@ class GODBot(TradingBotBase):
         """
         # Initialize base class (automatic adapter + PSM)
         super().__init__(
-            bot_name="GODBOT",
+            bot_name="DYNAMICSTOPLOSSBOT",
             bot_version="2.0.0",
             exchange_name='mock' if not exchange_config else 'cryptocom',
             enable_psm=True,
