@@ -16,8 +16,16 @@ from dotenv import load_dotenv
 # Load environment
 load_dotenv()
 
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '7289126201:AAHaWTLKxpddtbJ9oa4hGdvKaq0mypqU75Y')
-CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '7517400013')
+# AEGIS v2.0 Security: No hardcoded credentials as fallbacks
+BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+
+# Validate required environment variables
+if not BOT_TOKEN:
+    raise ValueError("TELEGRAM_BOT_TOKEN must be set in .env file")
+if not CHAT_ID:
+    raise ValueError("TELEGRAM_CHAT_ID must be set in .env file")
+
 STATUS_FILE = 'data/bot_status.json'
 
 class TelegramController:

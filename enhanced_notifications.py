@@ -13,8 +13,16 @@ class EnhancedNotifications:
     """Sends detailed trading notifications via Telegram"""
     
     def __init__(self):
-        self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '7289126201:AAHaWTLKxpddtbJ9oa4hGdvKaq0mypqU75Y')
-        self.chat_id = os.getenv('TELEGRAM_CHAT_ID', '7517400013')
+        # AEGIS v2.0 Security: No hardcoded credentials as fallbacks
+        self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+        self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
+        
+        # Validate required environment variables
+        if not self.bot_token:
+            raise ValueError("TELEGRAM_BOT_TOKEN must be set in .env file")
+        if not self.chat_id:
+            raise ValueError("TELEGRAM_CHAT_ID must be set in .env file")
+        
         self.base_url = f"https://api.telegram.org/bot{self.bot_token}"
         
     def send_message(self, text, parse_mode='Markdown'):

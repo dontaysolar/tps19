@@ -308,8 +308,9 @@ def test_telegram():
         with open(env_path, 'r') as f:
             content = f.read()
         
-        has_token = 'TELEGRAM_BOT_TOKEN=7289126201' in content
-        has_chat = 'TELEGRAM_CHAT_ID=7517400013' in content
+        # AEGIS v2.0 Security: Check for any token, not specific hardcoded value
+        has_token = 'TELEGRAM_BOT_TOKEN=' in content and len(content) > 0
+        has_chat = 'TELEGRAM_CHAT_ID=' in content and len(content) > 0
         
         log_test('Telegram', 'Bot Token Configured', has_token, critical=False)
         log_test('Telegram', 'Chat ID Configured', has_chat, critical=False)
@@ -318,8 +319,13 @@ def test_telegram():
             # Try to send test message
             try:
                 import requests
-                bot_token = "7289126201:AAHaWTLKxpddtbJ9oa4hGdvKaq0mypqU75Y"
-                chat_id = "7517400013"
+                # AEGIS v2.0 Security: Load from environment
+                bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+                chat_id = os.getenv('TELEGRAM_CHAT_ID')
+                
+                if not bot_token or not chat_id:
+                    log_test('Telegram', 'Credentials Available', False, critical=False)
+                    return
                 
                 # Test bot API connection
                 url = f"https://api.telegram.org/bot{bot_token}/getMe"

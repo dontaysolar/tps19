@@ -15,9 +15,17 @@ def test_telegram_bot():
     print("="*70)
     print()
     
-    # Load credentials from .env
-    bot_token = "7289126201:AAHaWTLKxpddtbJ9oa4hGdvKaq0mypqU75Y"
-    chat_id = "7517400013"
+    # AEGIS v2.0 Security: Load credentials from environment
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
+    
+    if not bot_token or not chat_id:
+        print("❌ ERROR: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set in .env")
+        print("   Copy .env.example to .env and add your credentials")
+        return 1
     
     print(f"🔑 Bot Token: {bot_token[:20]}...")
     print(f"💬 Chat ID: {chat_id}")
