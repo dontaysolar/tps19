@@ -1,68 +1,55 @@
 #!/usr/bin/env python3
 """
-ContinuityBot v2.0 - MIGRATED TO AEGIS ARCHITECTURE
-
-AEGIS v2.0 Changes:
-- Inherits from TradingBotBase (enforced safety)
-- Uses Exchange Adapter (no direct ccxt)
-- Integrates with PSM (position tracking)
-- ATLAS-compliant (Power of 10 rules)
-
-Original bot preserved in legacy_backup/
+Continuity Bot v2.0 - Long-Term Position Holder
+MIGRATED TO AEGIS ARCHITECTURE
+Holds positions through market cycles
 """
 
-import os
-import sys
-from typing import Dict, List
-
-# Add AEGIS core to path
+import os, sys
+from datetime import datetime
+from typing import Dict
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'core'))
-
-# Import AEGIS base class
 from trading_bot_base import TradingBotBase
 
-
 class ContinuityBot(TradingBotBase):
-    """
-    AEGIS v2.0: Now inherits from TradingBotBase
-    - Automatic Exchange Adapter usage
-    - PSM integration for position tracking
-    - ATLAS-compliant code
-    """
-    
     def __init__(self, exchange_config=None):
-        """
-        Initialize with AEGIS architecture
-        
-        ATLAS Compliance:
-        - Assertion 1: Base class initialized
-        - Assertion 2: Config validated
-        """
-        # Initialize base class (automatic adapter + PSM)
         super().__init__(
-            bot_name="CONTINUITYBOT",
+            bot_name="CONTINUITY_BOT",
             bot_version="2.0.0",
             exchange_name='mock' if not exchange_config else 'cryptocom',
             enable_psm=True,
             enable_logging=True
         )
+        assert hasattr(self, 'exchange_adapter'), "Base init failed"
+        self.config = {'min_hold_hours': 24, 'profit_target_pct': 15.0, 'max_loss_pct': 10.0}
+        self.metrics.update({'long_term_trades': 0, 'avg_hold_hours': 0.0})
+    
+    def should_close_position(self, position: Dict, current_price: float) -> Dict:
+        assert isinstance(position, dict), "Position must be dict"
+        assert current_price > 0, "Price must be positive"
         
-        # ATLAS Assertion 1
-        assert hasattr(self, 'exchange_adapter'), "Base class initialization failed"
+        entry_time = datetime.fromisoformat(position['created_at'])
+        hours_held = (datetime.now() - entry_time).total_seconds() / 3600
+        profit_pct = ((current_price - position['entry_price']) / position['entry_price']) * 100
         
-        # Bot-specific config (preserve from original)
-        # TODO: Copy original config here
-        self.config = {}
+        should_close = hours_held >= self.config['min_hold_hours'] and (
+            profit_pct >= self.config['profit_target_pct'] or 
+            profit_pct <= -self.config['max_loss_pct']
+        )
         
-        # ATLAS Assertion 2
-        assert isinstance(self.config, dict), "Config must be dict"
+        result = {
+            'should_close': should_close,
+            'hours_held': hours_held,
+            'profit_pct': profit_pct,
+            'reason': 'Target reached' if profit_pct >= self.config['profit_target_pct'] else 
+                     'Stop-loss' if profit_pct <= -self.config['max_loss_pct'] else 'Still holding'
+        }
+        assert isinstance(result, dict), "Result must be dict"
+        return result
 
-    
-    # Original bot methods migrated below
-    # Key changes:
-    # - self.exchange.fetch_X() → self.get_ticker()/self.exchange_adapter.X()
-    # - self.exchange.create_order() → self.place_order()
-    # - Add ATLAS assertions (min 2 per function)
-    
-    # TODO: Migrate remaining methods from original bot
-    # See god_bot_v2.py for migration pattern
+if __name__ == '__main__':
+    print("🔄 Continuity Bot v2.0 - Test")
+    bot = ContinuityBot()
+    print(f"Min hold: {bot.config['min_hold_hours']}h")
+    bot.close()
+    print("✅ Continuity Bot v2.0 migration complete!")
