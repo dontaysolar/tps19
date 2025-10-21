@@ -398,9 +398,7 @@ class TestCouncilAIUnified:
         bot.close()
 
 
-class TestCrossBot
-
-Integration:
+class TestCrossBotIntegration:
     """Integration tests across multiple unified bots"""
     
     def test_queen_continuity_workflow(self):
