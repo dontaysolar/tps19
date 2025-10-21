@@ -15,6 +15,7 @@ FEATURES:
 import sqlite3
 import json
 import time
+import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from pathlib import Path
@@ -156,7 +157,11 @@ class PositionStateManager:
         Returns:
             position_id: Unique position identifier
         """
-        position_id = f"{symbol.replace('/', '_')}_{side}_{int(time.time() * 1000)}"
+        # Generate thread-safe unique position ID
+        # Format: SYMBOL_SIDE_TIMESTAMP_UUID
+        timestamp_ms = int(time.time() * 1000)
+        unique_suffix = str(uuid.uuid4())[:8]  # Short UUID for readability
+        position_id = f"{symbol.replace('/', '_')}_{side}_{timestamp_ms}_{unique_suffix}"
         opened_at = datetime.now().isoformat()
         
         try:
