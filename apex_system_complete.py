@@ -21,10 +21,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'modules'))
 
 # Import all APEX components
 from apex_nexus_v2 import APEXNexusV2
-from database_handler import DatabaseManager, RedisDatabaseHandler
-from google_sheets_handler import SheetsManager
-from trading_strategies import StrategyManager
-from ai_models import AIModelManager, LSTMPredictor, GANSimulator
+from modules.database_handler import DatabaseManager, RedisDatabaseHandler
+from modules.google_sheets_handler import SheetsManager
+from modules.trading_strategies import StrategyManager
+from modules.ai_models import AIModelManager, LSTMPredictor, GANSimulator
 
 # Import all bots
 from god_bot import GODBot
