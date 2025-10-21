@@ -159,8 +159,9 @@ class PositionStateManager:
         """
         # Generate thread-safe unique position ID
         # Format: SYMBOL_SIDE_TIMESTAMP_UUID
+        # AEGIS v2.3: Using full UUID (not truncated) to eliminate collision risk
         timestamp_ms = int(time.time() * 1000)
-        unique_suffix = str(uuid.uuid4())[:8]  # Short UUID for readability
+        unique_suffix = str(uuid.uuid4())  # Full UUID for zero collision risk
         position_id = f"{symbol.replace('/', '_')}_{side}_{timestamp_ms}_{unique_suffix}"
         opened_at = datetime.now().isoformat()
         
