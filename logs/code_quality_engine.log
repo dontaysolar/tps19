@@ -1,0 +1,10 @@
+2025-10-21 01:18:33,594 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for apex_nexus_v2.py: Loop bound exceeded
+2025-10-21 01:18:33,604 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for apex_master_controller.py: Loop bound exceeded
+2025-10-21 01:18:33,626 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for security/autonomous_monitor.py: Loop bound exceeded
+2025-10-21 01:18:33,639 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for security/config_healer.py: Loop bound exceeded
+2025-10-21 01:18:33,651 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for security/performance_optimizer.py: Loop bound exceeded
+2025-10-21 01:18:33,662 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for security/system_dashboard.py: Loop bound exceeded
+2025-10-21 01:18:33,673 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for security/red_ai_simulation.py: Loop bound exceeded
+2025-10-21 01:18:33,687 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for security/iron_crucible.py: Loop bound exceeded
+2025-10-21 01:18:33,700 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for security/eagle_eye_monitor.py: Loop bound exceeded
+2025-10-21 01:18:33,711 - CODE_QUALITY_ENGINE - ERROR - File analysis failed for security/genesis_file.py: Loop bound exceeded
