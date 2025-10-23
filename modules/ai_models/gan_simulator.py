@@ -23,12 +23,21 @@ except ImportError:
 class GANSimulator:
     """GAN for generating realistic market scenarios"""
     
-    def __init__(self, model_dir='/opt/tps19/data/models'):
+    def __init__(self, model_dir=None):
         """Initialize GAN Simulator
         
         Args:
-            model_dir: Directory to save/load models
+            model_dir: Directory to save/load models (default: auto-detect)
         """
+        if model_dir is None:
+            # Auto-detect base directory
+            if os.path.exists('/opt/tps19'):
+                model_dir = '/opt/tps19/data/models'
+            else:
+                # Use relative path from script location
+                base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                model_dir = os.path.join(base_dir, 'data', 'models')
+        
         self.model_dir = model_dir
         os.makedirs(model_dir, exist_ok=True)
         

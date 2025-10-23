@@ -13,12 +13,21 @@ from typing import Dict, List, Any
 class SelfLearningPipeline:
     """Self-learning system that continuously improves strategy performance"""
     
-    def __init__(self, db_path='/opt/tps19/data/self_learning.db'):
+    def __init__(self, db_path=None):
         """Initialize self-learning pipeline
         
         Args:
-            db_path: Path to learning database
+            db_path: Path to learning database (default: auto-detect)
         """
+        if db_path is None:
+            # Auto-detect base directory
+            if os.path.exists('/opt/tps19'):
+                db_path = '/opt/tps19/data/self_learning.db'
+            else:
+                # Use relative path from script location
+                base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                db_path = os.path.join(base_dir, 'data', 'self_learning.db')
+        
         self.db_path = db_path
         self._init_database()
         
