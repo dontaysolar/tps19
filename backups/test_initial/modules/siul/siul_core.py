@@ -8,7 +8,12 @@ from typing import Dict, List, Any, Optional
 class SIULCore:
     """Smart Intelligent Unified Logic - Central Intelligence System"""
     
-    def __init__(self, db_path='/opt/tps19/data/siul_core.db'):
+    def __init__(self, db_path=None):
+        # Use dynamic path based on current working directory or script location
+        if db_path is None:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            db_path = os.path.join(base_dir, 'data', 'siul_core.db')
+        
         self.db_path = db_path
         self.exchange = 'crypto.com'
         self.intelligence_modules = {}

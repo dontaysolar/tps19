@@ -8,11 +8,20 @@ from typing import Dict, List, Any, Optional
 class TPS19PatchManager:
     """Complete Patching and Rollback System"""
     
-    def __init__(self, db_path='/opt/tps19/data/patch_manager.db'):
+    def __init__(self, db_path=None):
+        # Use dynamic path based on current working directory or script location
+        if db_path is None:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            db_path = os.path.join(base_dir, 'data', 'patch_manager.db')
+            self.patches_dir = os.path.join(base_dir, 'patches')
+            self.backups_dir = os.path.join(base_dir, 'backups')
+            self.system_dir = base_dir
+        else:
+            self.patches_dir = os.path.join(os.path.dirname(db_path), '..', 'patches')
+            self.backups_dir = os.path.join(os.path.dirname(db_path), '..', 'backups')
+            self.system_dir = os.path.dirname(os.path.dirname(db_path))
+        
         self.db_path = db_path
-        self.patches_dir = '/opt/tps19/patches'
-        self.backups_dir = '/opt/tps19/backups'
-        self.system_dir = '/opt/tps19'
         self.exchange = 'crypto.com'
         
         self._init_database()
