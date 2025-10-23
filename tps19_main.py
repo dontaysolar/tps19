@@ -7,7 +7,9 @@ from datetime import datetime
 # Add module paths
 workspace_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(workspace_dir, 'modules'))
-sys.path.insert(0, '/opt/tps19/modules')
+# Support both workspace and production paths
+if os.path.exists('/opt/tps19/modules'):
+    sys.path.insert(0, '/opt/tps19/modules')
 
 # Import all modules
 try:

@@ -416,7 +416,7 @@ class TPS19PatchManager:
                 return False
                 
             # Step 2: Create test file
-            test_file = '/opt/tps19/test_patch_file.txt'
+            test_file = os.path.join(self.system_dir, 'test_patch_file.txt')
             with open(test_file, 'w') as f:
                 f.write("Original content")
                 

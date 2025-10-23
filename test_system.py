@@ -3,7 +3,12 @@
 
 import sys
 import os
-sys.path.append('/opt/tps19/modules')
+
+# Support both workspace and production paths
+workspace_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(workspace_dir, 'modules'))
+if os.path.exists('/opt/tps19/modules'):
+    sys.path.append('/opt/tps19/modules')
 
 def test_modules():
     """Test all TPS19 modules"""
